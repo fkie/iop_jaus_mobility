@@ -1,0 +1,7 @@
+<library path="libiop_primitive_driver_fkie">
+  <class name="urn:jaus:jss:mobility:PrimitiveDriver_1_0" type="iop::PrimitiveDriverPlugin_1_0" base_class_type="iop::PluginInterface">
+    <description>
+      PrimitiveDriver Service Plugin
+    </description>
+  </class>
+</library>
