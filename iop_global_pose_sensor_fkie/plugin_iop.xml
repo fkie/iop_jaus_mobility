@@ -1,7 +1,10 @@
 <library path="libiop_global_pose_sensor_fkie">
-  <class name="urn:jaus:jss:mobility:GlobalPoseSensor_1_0" type="iop::GlobalPoseSensorPlugin_1_0" base_class_type="iop::PluginInterface">
+  <class name="GlobalPoseSensor_1_0" type="iop::GlobalPoseSensorPlugin_1_0" base_class_type="iop::PluginInterface">
     <description>
       GlobalPoseSensor Service Plugin
     </description>
+    <iop_service name="GlobalPoseSensor" id="urn:jaus:jss:mobility:GlobalPoseSensor" version="1.0">
+      <inherits_from id="urn:jaus:jss:core:AccessControl" min_version="1.0"/>
+    </iop_service>
   </class>
 </library>
