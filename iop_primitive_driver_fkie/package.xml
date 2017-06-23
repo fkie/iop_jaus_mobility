@@ -9,13 +9,10 @@
   <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
 
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>iop_builder_fkie</build_depend>
-  <build_depend>iop_component_fkie</build_depend>
-  <build_depend>iop_management_1_0_fkie</build_depend>
+  <build_depend>iop_management_fkie</build_depend>
   <build_depend>roscpp</build_depend>
-  <run_depend>iop_builder_fkie</run_depend>
   <run_depend>iop_component_fkie</run_depend>
-  <run_depend>iop_management_1_0_fkie</run_depend>
+  <run_depend>iop_management_fkie</run_depend>
   <run_depend>roscpp</run_depend>
 
   <export>

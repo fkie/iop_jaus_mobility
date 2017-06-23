@@ -5,7 +5,8 @@ project(iop_global_pose_sensor_fkie)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS 
-             iop_accesscontrol_1_0_fkie
+             iop_accesscontrol_fkie
+             iop_events_fkie
              iop_builder_fkie
              iop_component_fkie
              roscpp
@@ -17,7 +18,8 @@ catkin_package(
     INCLUDE_DIRS include/${PROJECT_NAME}
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS
-        iop_accesscontrol_1_0_fkie
+        iop_accesscontrol_fkie
+        iop_events_fkie
         iop_builder_fkie
         iop_component_fkie
         sensor_msgs
@@ -36,13 +38,13 @@ iop_code_generator(
     urn.jaus.jss.mobility/GlobalPoseSensor.xml
   OWN_IDLS
   OVERRIDES
-    include/urn_jaus_jss_mobility_GlobalPoseSensor_1_0/GlobalPoseSensor_ReceiveFSM.h
-    src/urn_jaus_jss_mobility_GlobalPoseSensor_1_0/GlobalPoseSensor_ReceiveFSM.cpp
+    include/urn_jaus_jss_mobility_GlobalPoseSensor/GlobalPoseSensor_ReceiveFSM.h
+    src/urn_jaus_jss_mobility_GlobalPoseSensor/GlobalPoseSensor_ReceiveFSM.cpp
     src/main.cpp
   EXTERN_SERVICES
-    urn_jaus_jss_core_AccessControl_1_0
-    urn_jaus_jss_core_Events_1_0
-    urn_jaus_jss_core_Transport_1_0
+    urn_jaus_jss_core_AccessControl
+    urn_jaus_jss_core_Events
+    urn_jaus_jss_core_Transport
   GENERATED_SOURCES cppfiles
 )
 
@@ -52,7 +54,7 @@ include_directories(
     include/${PROJECT_NAME}
 )
 add_library(${PROJECT_NAME}
-            src/GlobalPoseSensorPlugin_1_0.cpp
+            src/GlobalPoseSensorPlugin.cpp
             ${cppfiles}
 )
 

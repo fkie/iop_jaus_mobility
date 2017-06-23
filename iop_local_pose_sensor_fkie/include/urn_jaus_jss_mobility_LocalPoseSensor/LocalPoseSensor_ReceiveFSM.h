@@ -28,15 +28,15 @@ along with this program; or you can read the full license at
 #include "InternalEvents/InternalEventHandler.h"
 #include "Transport/JausTransport.h"
 #include "JTSStateMachine.h"
-#include "urn_jaus_jss_mobility_LocalPoseSensor_1_0/Messages/MessageSet.h"
-#include "urn_jaus_jss_mobility_LocalPoseSensor_1_0/InternalEvents/InternalEventsSet.h"
+#include "urn_jaus_jss_mobility_LocalPoseSensor/Messages/MessageSet.h"
+#include "urn_jaus_jss_mobility_LocalPoseSensor/InternalEvents/InternalEventsSet.h"
 
-typedef JTS::Receive_1_0 Receive;
-typedef JTS::Send_1_0 Send;
+typedef JTS::Receive Receive;
+typedef JTS::Send Send;
 
-#include "urn_jaus_jss_core_Transport_1_0/Transport_ReceiveFSM.h"
-#include "urn_jaus_jss_core_Events_1_0/Events_ReceiveFSM.h"
-#include "urn_jaus_jss_core_AccessControl_1_0/AccessControl_ReceiveFSM.h"
+#include "urn_jaus_jss_core_Transport/Transport_ReceiveFSM.h"
+#include "urn_jaus_jss_core_Events/Events_ReceiveFSM.h"
+#include "urn_jaus_jss_core_AccessControl/AccessControl_ReceiveFSM.h"
 
 #include <ros/ros.h>
 #include <nav_msgs/Odometry.h>
@@ -48,13 +48,13 @@ typedef JTS::Send_1_0 Send;
 
 #include "LocalPoseSensor_ReceiveFSM_sm.h"
 
-namespace urn_jaus_jss_mobility_LocalPoseSensor_1_0
+namespace urn_jaus_jss_mobility_LocalPoseSensor
 {
 
 class DllExport LocalPoseSensor_ReceiveFSM : public JTS::StateMachine
 {
 public:
-	LocalPoseSensor_ReceiveFSM(urn_jaus_jss_core_Transport_1_0::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events_1_0::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl_1_0::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM);
+	LocalPoseSensor_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM);
 	virtual ~LocalPoseSensor_ReceiveFSM();
 
 	/// Handle notifications on parent state changes
@@ -75,9 +75,9 @@ public:
 protected:
 
     /// References to parent FSMs
-	urn_jaus_jss_core_Transport_1_0::Transport_ReceiveFSM* pTransport_ReceiveFSM;
-	urn_jaus_jss_core_Events_1_0::Events_ReceiveFSM* pEvents_ReceiveFSM;
-	urn_jaus_jss_core_AccessControl_1_0::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
+	urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
+	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
+	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
 
 	ros::NodeHandle p_nh;
 	ros::Subscriber p_pose_sub;

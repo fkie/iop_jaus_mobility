@@ -6,7 +6,7 @@ project(iop_local_pose_sensor_fkie)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
              geometry_msgs
-             iop_accesscontrol_1_0_fkie
+             iop_accesscontrol_fkie
              iop_builder_fkie
              iop_component_fkie
              nav_msgs
@@ -20,7 +20,7 @@ catkin_package(
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS
         geometry_msgs
-        iop_accesscontrol_1_0_fkie
+        iop_accesscontrol_fkie
         iop_builder_fkie
         iop_component_fkie
         nav_msgs
@@ -40,13 +40,13 @@ iop_code_generator(
     urn.jaus.jss.mobility/LocalPoseSensor.xml
   OWN_IDLS
   OVERRIDES
-    include/urn_jaus_jss_mobility_LocalPoseSensor_1_0/LocalPoseSensor_ReceiveFSM.h
-    src/urn_jaus_jss_mobility_LocalPoseSensor_1_0/LocalPoseSensor_ReceiveFSM.cpp
+    include/urn_jaus_jss_mobility_LocalPoseSensor/LocalPoseSensor_ReceiveFSM.h
+    src/urn_jaus_jss_mobility_LocalPoseSensor/LocalPoseSensor_ReceiveFSM.cpp
     src/main.cpp
   EXTERN_SERVICES
-    urn_jaus_jss_core_AccessControl_1_0
-    urn_jaus_jss_core_Events_1_0
-    urn_jaus_jss_core_Transport_1_0
+    urn_jaus_jss_core_AccessControl
+    urn_jaus_jss_core_Events
+    urn_jaus_jss_core_Transport
   GENERATED_SOURCES cppfiles
 )
 
@@ -56,7 +56,7 @@ include_directories(${catkin_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
-            src/LocalPoseSensorPlugin_1_0.cpp
+            src/LocalPoseSensorPlugin.cpp
             ${cppfiles}
 )
 

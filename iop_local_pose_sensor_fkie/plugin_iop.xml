@@ -1,5 +1,5 @@
 <library path="libiop_local_pose_sensor_fkie">
-  <class name="LocalPoseSensor_1_0" type="iop::LocalPoseSensorPlugin_1_0" base_class_type="iop::PluginInterface">
+  <class name="LocalPoseSensor" type="iop::LocalPoseSensorPlugin" base_class_type="iop::PluginInterface">
     <description>
       LocalPoseSensor Service Plugin
     </description>

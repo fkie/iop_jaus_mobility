@@ -20,7 +20,7 @@ along with this program; or you can read the full license at
 
 /** \author Alexander Tiderko */
 
-#include "urn_jaus_jss_mobility_GlobalPoseSensor_1_0/GlobalPoseSensor_ReceiveFSM.h"
+#include "urn_jaus_jss_mobility_GlobalPoseSensor/GlobalPoseSensor_ReceiveFSM.h"
 #include <cmath>
 #include <tf/transform_datatypes.h>
 #include <ctime>
@@ -29,12 +29,12 @@ along with this program; or you can read the full license at
 
 using namespace JTS;
 
-namespace urn_jaus_jss_mobility_GlobalPoseSensor_1_0
+namespace urn_jaus_jss_mobility_GlobalPoseSensor
 {
 
 
 
-GlobalPoseSensor_ReceiveFSM::GlobalPoseSensor_ReceiveFSM(urn_jaus_jss_core_Transport_1_0::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events_1_0::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl_1_0::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM)
+GlobalPoseSensor_ReceiveFSM::GlobalPoseSensor_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM)
 {
 
 	/*
@@ -73,7 +73,7 @@ void GlobalPoseSensor_ReceiveFSM::setupNotifications()
 
 	p_navsatfix_sub = p_nh.subscribe<sensor_msgs::NavSatFix>("fix", 1, &GlobalPoseSensor_ReceiveFSM::fixReceived, this);
 	p_imu_sub = p_nh.subscribe<sensor_msgs::Imu>("imu", 1, &GlobalPoseSensor_ReceiveFSM::imuReceived, this);
-	this->pEvents_ReceiveFSM->set_event_report(0x2402, p_report_global_pose);
+//	this->pEvents_ReceiveFSM->set_event_report(0x2402, p_report_global_pose);
 }
 
 void GlobalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
