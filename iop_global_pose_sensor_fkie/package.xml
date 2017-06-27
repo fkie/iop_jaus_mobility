@@ -2,7 +2,7 @@
 <package>
   <name>iop_global_pose_sensor_fkie</name>
   <version>1.1.0</version>
-  <description>The iop_global_pose_sensor_fkie package</description>
+  <description>Translation of the global position sensor service functionality to/from ROS</description>
 
   <maintainer email="alexander.tiderko@fkie.fraunhofer.de">Alexander Tiderko</maintainer>
   <license>GPLv2</license>
@@ -10,14 +10,9 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>iop_accesscontrol_fkie</build_depend>
-  <build_depend>iop_builder_fkie</build_depend>
-  <build_depend>iop_component_fkie</build_depend>
-  <build_depend>iop_events_fkie</build_depend>
   <build_depend>roscpp</build_depend>
   <run_depend>iop_accesscontrol_fkie</run_depend>
-  <run_depend>iop_builder_fkie</run_depend>
   <run_depend>iop_component_fkie</run_depend>
-  <run_depend>iop_events_fkie</run_depend>
   <run_depend>sensor_msgs</run_depend>
 
   <export>

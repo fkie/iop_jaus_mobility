@@ -7,8 +7,6 @@ project(iop_local_pose_sensor_fkie)
 find_package(catkin REQUIRED COMPONENTS
              geometry_msgs
              iop_accesscontrol_fkie
-             iop_builder_fkie
-             iop_component_fkie
              nav_msgs
              roscpp
              tf
@@ -20,8 +18,6 @@ catkin_package(
     CATKIN_DEPENDS
         geometry_msgs
         iop_accesscontrol_fkie
-        iop_builder_fkie
-        iop_component_fkie
         nav_msgs
         tf
 )

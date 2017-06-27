@@ -2,7 +2,7 @@
 <package>
   <name>iop_local_pose_sensor_fkie</name>
   <version>1.1.0</version>
-  <description>The iop_local_pose_sensor_fkie package</description>
+  <description>Translation of the local position sensor service functionality to/from ROS</description>
 
   <maintainer email="alexander.tiderko@fkie.fraunhofer.de">Alexander Tiderko</maintainer>
   <license>GPLv2</license>
@@ -12,14 +12,11 @@
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>iop_accesscontrol_fkie</build_depend>
-  <build_depend>iop_builder_fkie</build_depend>
-  <build_depend>iop_component_fkie</build_depend>
   <build_depend>nav_msgs</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>tf</build_depend>
   <run_depend>geometry_msgs</run_depend>
   <run_depend>iop_accesscontrol_fkie</run_depend>
-  <run_depend>iop_builder_fkie</run_depend>
   <run_depend>iop_component_fkie</run_depend>
   <run_depend>nav_msgs</run_depend>
   <run_depend>tf</run_depend>
