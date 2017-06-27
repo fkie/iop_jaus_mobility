@@ -14,7 +14,6 @@ iop_init(COMPONENT_ID 33)
 ## catkin specific configuration ##
 ###################################
 catkin_package(
-    INCLUDE_DIRS include/${PROJECT_NAME}
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS
         iop_management_fkie
@@ -45,9 +44,7 @@ iop_code_generator(
   GENERATED_SOURCES cppfiles
 )
 
-include_directories(${catkin_INCLUDE_DIRS}
-                    include/${PROJECT_NAME}
-)
+include_directories(${catkin_INCLUDE_DIRS})
 
 add_library(${PROJECT_NAME}
             src/PrimitiveDriverPlugin.cpp
@@ -62,12 +59,6 @@ target_link_libraries(${PROJECT_NAME}
 #############
 ## Install ##
 #############
-
-install(
-  DIRECTORY include/${PROJECT_NAME} DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
-  PATTERN "*.old" EXCLUDE
-  PATTERN "*.gen" EXCLUDE
-)
 
 install(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}

@@ -21,7 +21,7 @@ along with this program; or you can read the full license at
 /** \author Alexander Tiderko */
 
 #include <pluginlib/class_list_macros.h>
-#include <GlobalPoseSensorPlugin.h>
+#include "GlobalPoseSensorPlugin.h"
 
 using namespace iop;
 using namespace urn_jaus_jss_mobility_GlobalPoseSensor;

@@ -15,7 +15,6 @@ iop_init(COMPONENT_ID 38)
 
 
 catkin_package(
-    INCLUDE_DIRS include/${PROJECT_NAME}
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS
         iop_accesscontrol_fkie
@@ -50,8 +49,6 @@ iop_code_generator(
 
 include_directories(
     ${catkin_INCLUDE_DIRS}
-    ${IOP_INCLUDE_DIRS}
-    include/${PROJECT_NAME}
 )
 add_library(${PROJECT_NAME}
             src/GlobalPoseSensorPlugin.cpp
@@ -70,12 +67,6 @@ target_link_libraries(${PROJECT_NAME}
 
 # all install targets should use catkin DESTINATION variables
 # See http://ros.org/doc/api/catkin/html/adv_user_guide/variables.html
-
-install(
-  DIRECTORY include/${PROJECT_NAME} DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
-  PATTERN "*.old" EXCLUDE
-  PATTERN "*.gen" EXCLUDE
-)
 
 # Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME}
