@@ -68,8 +68,9 @@ void LocalPoseSensor_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready", "LocalPoseSensor_ReceiveFSM");
 	registerNotification("Receiving", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving", "LocalPoseSensor_ReceiveFSM");
 	int source = 0;
-	p_nh.param("source", source, source);
-	ROS_INFO("source: %d", source);
+	ros::NodeHandle pnh("~");
+	pnh.param("source", source, source);
+	ROS_INFO("  ~source: %d (0: tf, 1: PoseStamped, 2: Odometry)", source);
 	switch (source) {
 		case 1 :
 			ROS_INFO("use pose as source for local pose");
@@ -81,12 +82,12 @@ void LocalPoseSensor_ReceiveFSM::setupNotifications()
 			break;
 		default :
 			ROS_INFO("use tf as source for local pose");
-			p_nh.param("tf_frame_odom", p_tf_frame_odom, p_tf_frame_odom);
-			ROS_INFO("  tf_frame_odom: %s", p_tf_frame_odom.c_str());
-			p_nh.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
-			ROS_INFO("  tf_frame_robot: %s", p_tf_frame_robot.c_str());
+			pnh.param("tf_frame_odom", p_tf_frame_odom, p_tf_frame_odom);
+			ROS_INFO("  ~tf_frame_odom: %s", p_tf_frame_odom.c_str());
+			pnh.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
+			ROS_INFO("  ~tf_frame_robot: %s", p_tf_frame_robot.c_str());
 			double tf_hz = 10.0;
-			p_nh.param("tf_hz", tf_hz, tf_hz);
+			pnh.param("tf_hz", tf_hz, tf_hz);
 			if (tf_hz == 0.0) {
 				tf_hz = 10.0;
 			}
