@@ -7,12 +7,12 @@
         <param name="capability_group" value="iop_bridge"/>
         <rosparam param="services">
           [
-            iop_primitive_driver_fkie: "urn:jaus:jss:mobility:PrimitiveDriver_1_0",
-            iop_discovery_1_0_fkie: "urn:jaus:jss:core:DiscoveryClient_1_0",
-            iop_accesscontrol_1_0_fkie: "urn:jaus:jss:core:AccessControl_1_0",
-            iop_events_1_0_fkie: "urn:jaus:jss:core:Events_1_0",
-            iop_events_1_0_fkie: "urn:jaus:jss:core:EventsClient_1_0",
-            iop_transport_1_0_fkie: "urn:jaus:jss:core:Transport_1_0",
+            iop_primitive_driver_fkie: "PrimitiveDriver",
+            iop_discovery_fkie: "DiscoveryClient",
+            iop_accesscontrol_fkie: "AccessControl",
+            iop_events_fkie: "Events",
+            iop_events_fkie: "EventsClient",
+            iop_transport_fkie: "Transport",
           ]
         </rosparam>
         <param name="iop_address" value="$(arg id_subsystem).$(arg id_node).33"/>
