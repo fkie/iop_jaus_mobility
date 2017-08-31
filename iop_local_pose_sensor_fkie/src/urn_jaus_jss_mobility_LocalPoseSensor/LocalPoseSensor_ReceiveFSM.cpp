@@ -95,6 +95,7 @@ void LocalPoseSensor_ReceiveFSM::setupNotifications()
 			p_tf_timer = p_nh.createTimer(ros::Duration(1.0 / tf_hz), &LocalPoseSensor_ReceiveFSM::tfCallback, this);
 			break;
 	}
+	this->pEvents_ReceiveFSM->set_event_report(QueryLocalPose::ID, p_report_local_pose);
 }
 
 void LocalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
@@ -157,7 +158,7 @@ void LocalPoseSensor_ReceiveFSM::tfCallback(const ros::TimerEvent& e)
 		ts.setSeconds(stamp.seconds);
 		ts.setMilliseconds(stamp.milliseconds);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setTimeStamp(ts);
-		this->pEvents_ReceiveFSM->set_event_report(0x2403, p_report_local_pose);
+		this->pEvents_ReceiveFSM->set_event_report(QueryLocalPose::ID, p_report_local_pose);
 	} catch (tf::TransformException &ex){
 		ROS_WARN_STREAM_THROTTLE(1.0, "Could not lookup transform from " << p_tf_frame_robot << " to " << p_tf_frame_odom << ": " << ex.what());
 	}
