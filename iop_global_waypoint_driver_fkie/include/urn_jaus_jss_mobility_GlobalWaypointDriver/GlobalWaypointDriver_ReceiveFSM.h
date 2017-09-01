@@ -70,6 +70,8 @@ protected:
 	std::string p_tf_frame_world;
 	ReportGlobalWaypoint p_current_waypoint;
 
+	void pStop();
+
 };
 
 };

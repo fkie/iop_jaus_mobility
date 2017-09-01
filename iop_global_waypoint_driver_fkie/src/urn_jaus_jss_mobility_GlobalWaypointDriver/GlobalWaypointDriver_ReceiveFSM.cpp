@@ -86,6 +86,7 @@ void GlobalWaypointDriver_ReceiveFSM::resetTravelSpeedAction()
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max.publish(ros_msg);
+	pStop();
 }
 
 void GlobalWaypointDriver_ReceiveFSM::sendReportGlobalWaypointAction(QueryGlobalWaypoint msg, Receive::Body::ReceiveRec transportData)
@@ -125,6 +126,9 @@ void GlobalWaypointDriver_ReceiveFSM::setTravelSpeedAction(SetTravelSpeed msg, R
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max.publish(ros_msg);
+	if (p_travel_speed == 0.0) {
+		pStop();
+	}
 }
 
 void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, Receive::Body::ReceiveRec transportData)
@@ -170,7 +174,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	tf::Quaternion quat;
 	quat.setRPY(roll, pitch, yaw);
 
-	if (lat != 0.0 && lon != 0.0) {
+	if (lat != -90.0 && lon != -180.0) {
 		ROS_INFO_NAMED("GlobalWaypointDriver", "new Waypoint lat: %.2f, lon: %.2f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
 		geometry_msgs::PoseStamped pose;
 		pose.header = path.header;
@@ -188,6 +192,16 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	this->p_pub_path.publish(path);
 }
 
+void GlobalWaypointDriver_ReceiveFSM::pStop()
+{
+	nav_msgs::Path path;
+	path.header.stamp = ros::Time::now();
+	path.header.frame_id = this->p_tf_frame_world;
+	ReportGlobalWaypoint waypoint;
+	p_current_waypoint = waypoint;
+	this->pEvents_ReceiveFSM->set_event_report(0x240c, p_current_waypoint, true);
+	this->p_pub_path.publish(path);
+}
 
 
 bool GlobalWaypointDriver_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
