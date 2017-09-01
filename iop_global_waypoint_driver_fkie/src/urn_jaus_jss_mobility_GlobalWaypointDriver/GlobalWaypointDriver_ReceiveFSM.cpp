@@ -71,6 +71,7 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	p_pnh.param("tv_max", p_tv_max, p_tv_max);
 	ROS_INFO_NAMED("GlobalWaypointDriver", "  tv_max: %.2f", p_tv_max);
 	//create ROS subscriber
+	p_travel_speed = p_tv_max;
 	p_pub_path = p_nh.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
 	p_pub_tv_max = p_nh.advertise<std_msgs::Float32>("cmd_tv_max", 5, true);
 	std_msgs::Float32 ros_msg;
