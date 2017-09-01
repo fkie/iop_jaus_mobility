@@ -174,7 +174,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	tf::Quaternion quat;
 	quat.setRPY(roll, pitch, yaw);
 
-	if (lat != -90.0 && lon != -180.0) {
+	if (lat <= -90.0 && lon <= -180.0) {
 		ROS_INFO_NAMED("GlobalWaypointDriver", "new Waypoint lat: %.2f, lon: %.2f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
 		geometry_msgs::PoseStamped pose;
 		pose.header = path.header;
