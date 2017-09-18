@@ -55,6 +55,7 @@ PrimitiveDriver_ReceiveFSM::PrimitiveDriver_ReceiveFSM(urn_jaus_jss_core_Transpo
 	max_angular_z = 1.5;
 	p_use_stamped = true;
 	p_pnh = ros::NodeHandle("~");
+	p_invert_angular_x = 1.0;
 }
 
 
