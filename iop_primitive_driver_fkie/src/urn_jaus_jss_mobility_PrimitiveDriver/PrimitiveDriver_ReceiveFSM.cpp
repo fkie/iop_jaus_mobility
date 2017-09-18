@@ -100,6 +100,8 @@ void PrimitiveDriver_ReceiveFSM::setupNotifications()
 	} else {
 	  cmd_pub_ = p_nh.advertise<geometry_msgs::Twist>("cmd_vel", 5);
 	}
+	p_pnh.param("invert_angular_x", p_invert_angular_x, p_invert_angular_x);
+	ROS_INFO_STREAM("[PrimitiveDriver ROS param] invert_angular_x: " << p_invert_angular_x);
 	p_pnh.param("max_linear_x", max_linear_x, max_linear_x);
 	ROS_INFO_STREAM("[PrimitiveDriver ROS param] max_linear_x: " << max_linear_x << "m/s");
 	p_pnh.param("max_linear_y", max_linear_y, max_linear_y);

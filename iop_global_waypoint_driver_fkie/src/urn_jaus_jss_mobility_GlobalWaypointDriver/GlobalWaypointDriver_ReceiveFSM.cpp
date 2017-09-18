@@ -87,7 +87,7 @@ void GlobalWaypointDriver_ReceiveFSM::resetTravelSpeedAction()
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max.publish(ros_msg);
-	pStop();
+//	pStop();
 }
 
 void GlobalWaypointDriver_ReceiveFSM::sendReportGlobalWaypointAction(QueryGlobalWaypoint msg, Receive::Body::ReceiveRec transportData)

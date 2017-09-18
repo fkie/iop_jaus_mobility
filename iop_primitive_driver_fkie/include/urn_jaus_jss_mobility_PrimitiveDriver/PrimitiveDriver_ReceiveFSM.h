@@ -91,6 +91,7 @@ protected:
 	double max_angular_y;
 	double max_angular_z;
 	bool p_use_stamped;
+	double p_invert_angular_x;
 
 
 	void odomReceived(const nav_msgs::Odometry::ConstPtr& odom);
