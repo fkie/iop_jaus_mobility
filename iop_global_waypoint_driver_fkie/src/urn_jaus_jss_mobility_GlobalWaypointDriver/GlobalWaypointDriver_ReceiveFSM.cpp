@@ -66,6 +66,8 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving_Ready", "GlobalWaypointDriver_ReceiveFSM");
 	registerNotification("Receiving", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving", "GlobalWaypointDriver_ReceiveFSM");
 
+	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalWaypoint::ID);
+
 	p_pnh.param("tf_frame_world", p_tf_frame_world, p_tf_frame_world);
 	ROS_INFO_NAMED("GlobalWaypointDriver", "  tf_frame_world: %s", p_tf_frame_world.c_str());
 	p_pnh.param("tv_max", p_tv_max, p_tv_max);
@@ -77,7 +79,6 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max.publish(ros_msg);
-	this->pEvents_ReceiveFSM->set_event_report(0x240c, p_current_waypoint, true);
 }
 
 void GlobalWaypointDriver_ReceiveFSM::resetTravelSpeedAction()
@@ -189,7 +190,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 		path.poses.push_back(pose);
 	}
 
-	this->pEvents_ReceiveFSM->set_event_report(0x240c, p_current_waypoint, true);
+	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
 	this->p_pub_path.publish(path);
 }
 
@@ -200,7 +201,7 @@ void GlobalWaypointDriver_ReceiveFSM::pStop()
 	path.header.frame_id = this->p_tf_frame_world;
 	ReportGlobalWaypoint waypoint;
 	p_current_waypoint = waypoint;
-	this->pEvents_ReceiveFSM->set_event_report(0x240c, p_current_waypoint, true);
+	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
 	this->p_pub_path.publish(path);
 }
 

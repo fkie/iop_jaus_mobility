@@ -70,39 +70,39 @@ void LocalPoseSensor_ReceiveFSM::setupNotifications()
 	int source = 0;
 	ros::NodeHandle pnh("~");
 	pnh.param("source", source, source);
-	ROS_INFO("  ~source: %d (0: tf, 1: PoseStamped, 2: Odometry)", source);
+	ROS_INFO_NAMED("LocalPoseSensor", "  ~source: %d (0: tf, 1: PoseStamped, 2: Odometry)", source);
 	switch (source) {
 		case 1 :
-			ROS_INFO("use pose as source for local pose");
+			ROS_INFO_NAMED("LocalPoseSensor", "use pose as source for local pose");
 			p_pose_sub = p_nh.subscribe<geometry_msgs::PoseStamped>("pose", 1, &LocalPoseSensor_ReceiveFSM::poseReceived, this);
 			break;
 		case 2 :
-			ROS_INFO("use odometry as source for local pose");
+			ROS_INFO_NAMED("LocalPoseSensor", "use odometry as source for local pose");
 			p_odom_sub = p_nh.subscribe<nav_msgs::Odometry>("odom", 1, &LocalPoseSensor_ReceiveFSM::odomReceived, this);
 			break;
 		default :
-			ROS_INFO("use tf as source for local pose");
+			ROS_INFO_NAMED("LocalPoseSensor", "use tf as source for local pose");
 			pnh.param("tf_frame_odom", p_tf_frame_odom, p_tf_frame_odom);
-			ROS_INFO("  ~tf_frame_odom: %s", p_tf_frame_odom.c_str());
+			ROS_INFO_NAMED("LocalPoseSensor", "  ~tf_frame_odom: %s", p_tf_frame_odom.c_str());
 			pnh.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
-			ROS_INFO("  ~tf_frame_robot: %s", p_tf_frame_robot.c_str());
+			ROS_INFO_NAMED("LocalPoseSensor", "  ~tf_frame_robot: %s", p_tf_frame_robot.c_str());
 			double tf_hz = 10.0;
 			pnh.param("tf_hz", tf_hz, tf_hz);
 			if (tf_hz == 0.0) {
 				tf_hz = 10.0;
 			}
-			ROS_INFO("  tf_hz: %.2f", tf_hz);
+			ROS_INFO_NAMED("LocalPoseSensor", "  tf_hz: %.2f", tf_hz);
 			p_tf_timer = p_nh.createTimer(ros::Duration(1.0 / tf_hz), &LocalPoseSensor_ReceiveFSM::tfCallback, this);
 			break;
 	}
-	this->pEvents_ReceiveFSM->set_event_report(QueryLocalPose::ID, p_report_local_pose);
+	pEvents_ReceiveFSM->get_event_handler().register_query(QueryLocalPose::ID);
 }
 
 void LocalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
 {
 	/// Insert User Code HERE
 	/// Insert User Code HERE
-	ROS_DEBUG("request %s from %d.%d.%d", arg0.c_str(),
+	ROS_DEBUG_NAMED("LocalPoseSensor", "request %s from %d.%d.%d", arg0.c_str(),
 			  transportData.getSrcSubsystemID(), transportData.getSrcNodeID(), transportData.getSrcComponentID());
 	JausAddress sender = JausAddress(transportData.getSrcSubsystemID(),
 									 transportData.getSrcNodeID(),
@@ -115,7 +115,7 @@ void LocalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::Rec
 void LocalPoseSensor_ReceiveFSM::updateLocalPoseAction(SetLocalPose msg)
 {
 	/// Insert User Code HERE
-	ROS_WARN("updateLocalPoseAction not implemented");
+	ROS_WARN_NAMED("LocalPoseSensor", "updateLocalPoseAction not implemented");
 }
 
 
@@ -146,7 +146,7 @@ void LocalPoseSensor_ReceiveFSM::tfCallback(const ros::TimerEvent& e)
 			p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
 			p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
 		} catch (const std::exception& e) {
-			ROS_WARN("Error while get yaw, pitch, roll from quaternion: %s", e.what());
+			ROS_WARN_NAMED("LocalPoseSensor", "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 		}
 		// set timestamp
 		ReportLocalPose::Body::LocalPoseRec::TimeStamp ts;
@@ -158,7 +158,7 @@ void LocalPoseSensor_ReceiveFSM::tfCallback(const ros::TimerEvent& e)
 		ts.setSeconds(stamp.seconds);
 		ts.setMilliseconds(stamp.milliseconds);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setTimeStamp(ts);
-		this->pEvents_ReceiveFSM->set_event_report(QueryLocalPose::ID, p_report_local_pose);
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalPose::ID, &p_report_local_pose);
 	} catch (tf::TransformException &ex){
 		ROS_WARN_STREAM_THROTTLE(1.0, "Could not lookup transform from " << p_tf_frame_robot << " to " << p_tf_frame_odom << ": " << ex.what());
 	}
@@ -180,7 +180,7 @@ void LocalPoseSensor_ReceiveFSM::poseReceived(const geometry_msgs::PoseStamped::
 		p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
 	} catch (const std::exception& e) {
-		ROS_WARN("Error while get yaw, pitch, roll from quaternion: %s", e.what());
+		ROS_WARN_NAMED("LocalPoseSensor", "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 	}
 	// set timestamp
 	ReportLocalPose::Body::LocalPoseRec::TimeStamp ts;
@@ -192,7 +192,7 @@ void LocalPoseSensor_ReceiveFSM::poseReceived(const geometry_msgs::PoseStamped::
 	ts.setSeconds(stamp.seconds);
 	ts.setMilliseconds(stamp.milliseconds);
 	p_report_local_pose.getBody()->getLocalPoseRec()->setTimeStamp(ts);
-	this->pEvents_ReceiveFSM->set_event_report(0x2403, p_report_local_pose);
+	pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalPose::ID, &p_report_local_pose);
 }
 
 
@@ -211,7 +211,7 @@ void LocalPoseSensor_ReceiveFSM::odomReceived(const nav_msgs::Odometry::ConstPtr
 		p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
 	} catch (const std::exception& e) {
-		ROS_WARN("Error while get yaw, pitch, roll from quaternion: %s", e.what());
+		ROS_WARN_NAMED("LocalPoseSensor", "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 	}
 	// set timestamp
 	ReportLocalPose::Body::LocalPoseRec::TimeStamp ts;
@@ -223,7 +223,7 @@ void LocalPoseSensor_ReceiveFSM::odomReceived(const nav_msgs::Odometry::ConstPtr
 	ts.setSeconds(stamp.seconds);
 	ts.setMilliseconds(stamp.milliseconds);
 	p_report_local_pose.getBody()->getLocalPoseRec()->setTimeStamp(ts);
-	this->pEvents_ReceiveFSM->set_event_report(0x2403, p_report_local_pose);
+	pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalPose::ID, &p_report_local_pose);
 }
 
 };

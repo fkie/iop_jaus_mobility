@@ -73,7 +73,7 @@ void GlobalPoseSensor_ReceiveFSM::setupNotifications()
 
 	p_navsatfix_sub = p_nh.subscribe<sensor_msgs::NavSatFix>("fix", 1, &GlobalPoseSensor_ReceiveFSM::fixReceived, this);
 	p_imu_sub = p_nh.subscribe<sensor_msgs::Imu>("imu", 1, &GlobalPoseSensor_ReceiveFSM::imuReceived, this);
-	this->pEvents_ReceiveFSM->set_event_report(QueryGlobalPose::ID, p_report_global_pose);
+	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalPose::ID);
 }
 
 void GlobalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
@@ -130,7 +130,7 @@ void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::NavSatFix::Cons
 		ts.setSeconds(stamp.seconds);
 		ts.setMilliseconds(stamp.milliseconds);
 		p_report_global_pose.getBody()->getGlobalPoseRec()->setTimeStamp(ts);
-		this->pEvents_ReceiveFSM->set_event_report(0x2402, p_report_global_pose);
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalPose::ID, &p_report_global_pose);
 	}
 }
 
