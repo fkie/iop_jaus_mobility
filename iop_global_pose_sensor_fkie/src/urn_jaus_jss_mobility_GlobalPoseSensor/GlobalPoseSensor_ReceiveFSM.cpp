@@ -25,6 +25,7 @@ along with this program; or you can read the full license at
 #include <tf/transform_datatypes.h>
 #include <ctime>
 #include <iop_builder_fkie/timestamp.h>
+#include <iop_component_fkie/iop_config.h>
 
 
 using namespace JTS;
@@ -70,9 +71,9 @@ void GlobalPoseSensor_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready_Controlled", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_Controlled", "GlobalPoseSensor_ReceiveFSM");
 	registerNotification("Receiving_Ready", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready", "GlobalPoseSensor_ReceiveFSM");
 	registerNotification("Receiving", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving", "GlobalPoseSensor_ReceiveFSM");
-
-	p_navsatfix_sub = p_nh.subscribe<sensor_msgs::NavSatFix>("fix", 1, &GlobalPoseSensor_ReceiveFSM::fixReceived, this);
-	p_imu_sub = p_nh.subscribe<sensor_msgs::Imu>("imu", 1, &GlobalPoseSensor_ReceiveFSM::imuReceived, this);
+	iop::Config cfg("~GlobalPoseSensor");
+	p_navsatfix_sub = cfg.subscribe<sensor_msgs::NavSatFix>("fix", 1, &GlobalPoseSensor_ReceiveFSM::fixReceived, this);
+	p_imu_sub = cfg.subscribe<sensor_msgs::Imu>("imu", 1, &GlobalPoseSensor_ReceiveFSM::imuReceived, this);
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalPose::ID);
 }
 

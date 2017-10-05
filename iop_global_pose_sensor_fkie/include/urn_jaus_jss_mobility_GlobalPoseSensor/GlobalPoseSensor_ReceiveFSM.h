@@ -77,7 +77,6 @@ protected:
 	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
 	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
 
-	ros::NodeHandle p_nh;
 	ros::Subscriber p_navsatfix_sub;
 	ros::Subscriber p_imu_sub;
 	ReportGlobalPose p_report_global_pose;

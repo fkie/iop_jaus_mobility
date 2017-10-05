@@ -22,7 +22,7 @@ along with this program; or you can read the full license at
 
 
 #include "urn_jaus_jss_mobility_PrimitiveDriver/PrimitiveDriver_ReceiveFSM.h"
-
+#include <iop_component_fkie/iop_config.h>
 
 
 
@@ -91,28 +91,21 @@ void PrimitiveDriver_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving_Ready", "PrimitiveDriver_ReceiveFSM");
 	registerNotification("Receiving", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving", "PrimitiveDriver_ReceiveFSM");
 
+	iop::Config cfg("~PrimitiveDriver");
+	cfg.param("max_linear_x", max_linear_x, max_linear_x, true, false, "m/s");
+	cfg.param("max_linear_y", max_linear_y, max_linear_y, true, false, "m/s");
+	cfg.param("max_linear_z", max_linear_z, max_linear_z, true, false, "m/s");
+	cfg.param("max_angular_x", max_angular_x, max_angular_x, true, false, "rad");
+	cfg.param("max_angular_y", max_angular_y, max_angular_y, true, false, "rad");
+	cfg.param("max_angular_z", max_angular_z, max_angular_z, true, false, "rad");
+	cfg.param("use_stamped", p_use_stamped, p_use_stamped);
 //        odom_sub_ = p_nh.subscribe<nav_msgs::Odometry>("odom", 1, &PrimitiveDriver_ReceiveFSM::odomReceived, this);
-	p_pnh.param("use_stamped", p_use_stamped, true);
-	ROS_INFO_STREAM_NAMED("PrimitiveDriver", "[PrimitiveDriver ROS param] use_stamped: " << p_use_stamped);
 	//create ROS subscriber
 	if (p_use_stamped) {
-	  cmd_pub_ = p_nh.advertise<geometry_msgs::TwistStamped>("cmd_vel", 5);
+	  cmd_pub_ = cfg.advertise<geometry_msgs::TwistStamped>("cmd_vel", 5);
 	} else {
-	  cmd_pub_ = p_nh.advertise<geometry_msgs::Twist>("cmd_vel", 5);
+	  cmd_pub_ = cfg.advertise<geometry_msgs::Twist>("cmd_vel", 5);
 	}
-	p_pnh.param("max_linear_x", max_linear_x, max_linear_x);
-	ROS_INFO_STREAM_NAMED("PrimitiveDriver", "[PrimitiveDriver ROS param] max_linear_x: " << max_linear_x << "m/s");
-	p_pnh.param("max_linear_y", max_linear_y, max_linear_y);
-	ROS_INFO_STREAM_NAMED("PrimitiveDriver", "[PrimitiveDriver ROS param] max_linear_y: " << max_linear_y << "m/s");
-	p_pnh.param("max_linear_z", max_linear_z, max_linear_z);
-	ROS_INFO_STREAM_NAMED("PrimitiveDriver", "[PrimitiveDriver ROS param] max_linear_z: " << max_linear_z << "m/s");
-
-	p_pnh.param("max_angular_x", max_angular_x, max_angular_x);
-	ROS_INFO_STREAM_NAMED("PrimitiveDriver", "[PrimitiveDriver ROS param] max_angular_x: " << max_angular_x << "rad");
-	p_pnh.param("max_angular_y", max_angular_y, max_angular_y);
-	ROS_INFO_STREAM_NAMED("PrimitiveDriver", "[PrimitiveDriver ROS param] max_angular_y: " << max_angular_y << "rad");
-	p_pnh.param("max_angular_z", max_angular_z, max_angular_z);
-	ROS_INFO_STREAM_NAMED("PrimitiveDriver", "[PrimitiveDriver ROS param] max_angular_z: " << max_angular_z << "rad");
 }
 
 void PrimitiveDriver_ReceiveFSM::sendReportWrenchEffortAction(QueryWrenchEffort msg, Receive::Body::ReceiveRec transportData)

@@ -79,7 +79,6 @@ protected:
 	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
 	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
 
-	ros::NodeHandle p_nh;
 	ros::Subscriber p_pose_sub;
 	ros::Subscriber p_odom_sub;
 	ReportLocalPose p_report_local_pose;

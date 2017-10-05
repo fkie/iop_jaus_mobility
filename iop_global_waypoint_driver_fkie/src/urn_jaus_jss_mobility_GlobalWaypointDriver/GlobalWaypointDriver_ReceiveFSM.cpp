@@ -4,6 +4,7 @@
 
 #include <gps_common/conversions.h>
 #include <tf/transform_datatypes.h>
+#include <iop_component_fkie/iop_component.h>
 
 using namespace JTS;
 
@@ -26,7 +27,6 @@ GlobalWaypointDriver_ReceiveFSM::GlobalWaypointDriver_ReceiveFSM(urn_jaus_jss_co
 	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
 	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
 	this->pManagement_ReceiveFSM = pManagement_ReceiveFSM;
-	p_pnh = ros::NodeHandle("~");
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
 	p_tf_frame_world = "/world";
@@ -66,16 +66,15 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving_Ready", "GlobalWaypointDriver_ReceiveFSM");
 	registerNotification("Receiving", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving", "GlobalWaypointDriver_ReceiveFSM");
 
-	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalWaypoint::ID);
+	iop::Config cfg("~GlobalWaypointDriver");
+	cfg.param("tf_frame_world", p_tf_frame_world, p_tf_frame_world);
+	cfg.param("tv_max", p_tv_max, p_tv_max);
 
-	p_pnh.param("tf_frame_world", p_tf_frame_world, p_tf_frame_world);
-	ROS_INFO_NAMED("GlobalWaypointDriver", "  tf_frame_world: %s", p_tf_frame_world.c_str());
-	p_pnh.param("tv_max", p_tv_max, p_tv_max);
-	ROS_INFO_NAMED("GlobalWaypointDriver", "  tv_max: %.2f", p_tv_max);
+	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalWaypoint::ID);
 	//create ROS subscriber
 	p_travel_speed = p_tv_max;
-	p_pub_path = p_nh.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
-	p_pub_tv_max = p_nh.advertise<std_msgs::Float32>("cmd_tv_max", 5, true);
+	p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
+	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_tv_max", 5, true);
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max.publish(ros_msg);

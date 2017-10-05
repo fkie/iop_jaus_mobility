@@ -22,7 +22,7 @@ along with this program; or you can read the full license at
 
 
 #include "urn_jaus_jss_mobility_LocalPoseSensor/LocalPoseSensor_ReceiveFSM.h"
-
+#include <iop_component_fkie/iop_config.h>
 
 
 
@@ -67,32 +67,30 @@ void LocalPoseSensor_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready_Controlled", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_Controlled", "LocalPoseSensor_ReceiveFSM");
 	registerNotification("Receiving_Ready", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready", "LocalPoseSensor_ReceiveFSM");
 	registerNotification("Receiving", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving", "LocalPoseSensor_ReceiveFSM");
+	iop::Config cfg("~LocalPoseSensor");
 	int source = 0;
-	ros::NodeHandle pnh("~");
-	pnh.param("source", source, source);
-	ROS_INFO_NAMED("LocalPoseSensor", "  ~source: %d (0: tf, 1: PoseStamped, 2: Odometry)", source);
+	std::map<int, std::string> source_map;
+	source_map[0] = "tf";
+	source_map[1] = "PoseStamped";
+	source_map[2] = "Odometry";
+	cfg.param("source", source, source, true, true, "", source_map);
 	switch (source) {
 		case 1 :
-			ROS_INFO_NAMED("LocalPoseSensor", "use pose as source for local pose");
-			p_pose_sub = p_nh.subscribe<geometry_msgs::PoseStamped>("pose", 1, &LocalPoseSensor_ReceiveFSM::poseReceived, this);
+			p_pose_sub = cfg.subscribe<geometry_msgs::PoseStamped>("pose", 1, &LocalPoseSensor_ReceiveFSM::poseReceived, this);
 			break;
 		case 2 :
-			ROS_INFO_NAMED("LocalPoseSensor", "use odometry as source for local pose");
-			p_odom_sub = p_nh.subscribe<nav_msgs::Odometry>("odom", 1, &LocalPoseSensor_ReceiveFSM::odomReceived, this);
+			p_odom_sub = cfg.subscribe<nav_msgs::Odometry>("odom", 1, &LocalPoseSensor_ReceiveFSM::odomReceived, this);
 			break;
 		default :
-			ROS_INFO_NAMED("LocalPoseSensor", "use tf as source for local pose");
-			pnh.param("tf_frame_odom", p_tf_frame_odom, p_tf_frame_odom);
-			ROS_INFO_NAMED("LocalPoseSensor", "  ~tf_frame_odom: %s", p_tf_frame_odom.c_str());
-			pnh.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
-			ROS_INFO_NAMED("LocalPoseSensor", "  ~tf_frame_robot: %s", p_tf_frame_robot.c_str());
+			cfg.param("tf_frame_odom", p_tf_frame_odom, p_tf_frame_odom);
+			cfg.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
 			double tf_hz = 10.0;
-			pnh.param("tf_hz", tf_hz, tf_hz);
+			cfg.param("tf_hz", tf_hz, tf_hz);
 			if (tf_hz == 0.0) {
 				tf_hz = 10.0;
 			}
-			ROS_INFO_NAMED("LocalPoseSensor", "  tf_hz: %.2f", tf_hz);
-			p_tf_timer = p_nh.createTimer(ros::Duration(1.0 / tf_hz), &LocalPoseSensor_ReceiveFSM::tfCallback, this);
+			ros::NodeHandle nh;
+			p_tf_timer = nh.createTimer(ros::Duration(1.0 / tf_hz), &LocalPoseSensor_ReceiveFSM::tfCallback, this);
 			break;
 	}
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryLocalPose::ID);

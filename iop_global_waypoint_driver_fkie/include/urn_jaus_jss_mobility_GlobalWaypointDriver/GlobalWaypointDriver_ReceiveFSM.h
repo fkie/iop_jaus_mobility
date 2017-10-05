@@ -61,8 +61,6 @@ protected:
 	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
 	urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM;
 
-	ros::NodeHandle p_nh;
-	ros::NodeHandle p_pnh;
 	ros::Publisher p_pub_path;
 	ros::Publisher p_pub_tv_max;
 	float p_travel_speed;
