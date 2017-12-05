@@ -62,6 +62,7 @@ public:
 	/// Action Methods
 	virtual void sendReportWrenchEffortAction(QueryWrenchEffort msg, Receive::Body::ReceiveRec transportData);
 	virtual void setWrenchEffortAction(SetWrenchEffort msg, Receive::Body::ReceiveRec transportData);
+	virtual void stopMotionAction();
 
 
 	/// Guard Methods

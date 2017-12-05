@@ -102,78 +102,96 @@ void PrimitiveDriver_ReceiveFSM::setupNotifications()
 //        odom_sub_ = p_nh.subscribe<nav_msgs::Odometry>("odom", 1, &PrimitiveDriver_ReceiveFSM::odomReceived, this);
 	//create ROS subscriber
 	if (p_use_stamped) {
-	  cmd_pub_ = cfg.advertise<geometry_msgs::TwistStamped>("cmd_vel", 5);
+		cmd_pub_ = cfg.advertise<geometry_msgs::TwistStamped>("cmd_vel", 5);
 	} else {
-	  cmd_pub_ = cfg.advertise<geometry_msgs::Twist>("cmd_vel", 5);
+		cmd_pub_ = cfg.advertise<geometry_msgs::Twist>("cmd_vel", 5);
 	}
 }
 
 void PrimitiveDriver_ReceiveFSM::sendReportWrenchEffortAction(QueryWrenchEffort msg, Receive::Body::ReceiveRec transportData)
 {
 	/// Insert User Code HERE
-  ROS_DEBUG_NAMED("PrimitiveDriver", "report WrenchEffortAction to %d.%d.%d",
-            transportData.getSrcSubsystemID(), transportData.getSrcNodeID(), transportData.getSrcComponentID());
-  JausAddress sender = JausAddress(transportData.getSrcSubsystemID(),
-                                   transportData.getSrcNodeID(),
-                                   transportData.getSrcComponentID());
-  ReportWrenchEffort response;
-  response.getBody()->setWrenchEffortRec(current_wrench_effort_);
-  this->sendJausMessage(response, sender);
+	JausAddress sender = transportData.getAddress();
+	ROS_DEBUG_NAMED("PrimitiveDriver", "report WrenchEffortAction to %s", sender.str().c_str());
+	ReportWrenchEffort response;
+	response.getBody()->setWrenchEffortRec(current_wrench_effort_);
+	this->sendJausMessage(response, sender);
 }
 
 void PrimitiveDriver_ReceiveFSM::setWrenchEffortAction(SetWrenchEffort msg, Receive::Body::ReceiveRec transportData)
 {
 	/// Insert User Code HERE
-  SetWrenchEffort::Body::WrenchEffortRec *we= msg.getBody()->getWrenchEffortRec();
-  ReportWrenchEffort::Body::WrenchEffortRec new_wrench_effort;
-  geometry_msgs::Twist cmd_vel;
-  if (we->isPropulsiveLinearEffortXValid()) {
-    cmd_vel.linear.x = we->getPropulsiveLinearEffortX() / 100.0 * max_linear_x ;
-    new_wrench_effort.setPropulsiveLinearEffortX(we->getPropulsiveLinearEffortX());
-  }
-  if (we->isPropulsiveLinearEffortYValid()) {
-    cmd_vel.linear.y = we->getPropulsiveLinearEffortY() / 100.0 * max_linear_y;
-    new_wrench_effort.setPropulsiveLinearEffortY(we->getPropulsiveLinearEffortY());
-  }
-  if (we->isPropulsiveLinearEffortZValid()) {
-    cmd_vel.linear.z = we->getPropulsiveLinearEffortZ() / 100.0 * max_linear_z;
-    new_wrench_effort.setPropulsiveLinearEffortZ(we->getPropulsiveLinearEffortZ());
-  }
-  if (we->isPropulsiveRotationalEffortXValid()) {
-    cmd_vel.angular.x = we->getPropulsiveRotationalEffortX() / 100.0 * max_angular_x;
-    new_wrench_effort.setPropulsiveRotationalEffortX(we->getPropulsiveRotationalEffortX());
-  }
-  if (we->isPropulsiveRotationalEffortYValid()) {
-    cmd_vel.angular.y = we->getPropulsiveRotationalEffortY() / 100.0 * max_angular_y;
-    new_wrench_effort.setPropulsiveRotationalEffortY(we->getPropulsiveRotationalEffortY());
-  }
-  if (we->isPropulsiveRotationalEffortZValid()) {
-    cmd_vel.angular.z = we->getPropulsiveRotationalEffortZ() / 100.0 * max_angular_z;
-    new_wrench_effort.setPropulsiveRotationalEffortZ(we->getPropulsiveRotationalEffortZ());
-  }
-  current_wrench_effort_ = new_wrench_effort;
-  if (p_use_stamped) {
-    // since the jaus message does not have time stamp, we use current time
-    geometry_msgs::TwistStamped cmd_vel_stamped;
-    cmd_vel_stamped.header.stamp = ros::Time::now();
-    cmd_vel_stamped.twist = cmd_vel;
-    cmd_pub_.publish(cmd_vel_stamped);
-  } else {
-    cmd_pub_.publish(cmd_vel);
-  }
-  pAccessControl_ReceiveFSM->resetTimerAction();
+	SetWrenchEffort::Body::WrenchEffortRec *we= msg.getBody()->getWrenchEffortRec();
+	ReportWrenchEffort::Body::WrenchEffortRec new_wrench_effort;
+	geometry_msgs::Twist cmd_vel;
+	if (we->isPropulsiveLinearEffortXValid()) {
+		cmd_vel.linear.x = we->getPropulsiveLinearEffortX() / 100.0 * max_linear_x ;
+		new_wrench_effort.setPropulsiveLinearEffortX(we->getPropulsiveLinearEffortX());
+	}
+	if (we->isPropulsiveLinearEffortYValid()) {
+		cmd_vel.linear.y = we->getPropulsiveLinearEffortY() / 100.0 * max_linear_y;
+		new_wrench_effort.setPropulsiveLinearEffortY(we->getPropulsiveLinearEffortY());
+	}
+	if (we->isPropulsiveLinearEffortZValid()) {
+		cmd_vel.linear.z = we->getPropulsiveLinearEffortZ() / 100.0 * max_linear_z;
+		new_wrench_effort.setPropulsiveLinearEffortZ(we->getPropulsiveLinearEffortZ());
+	}
+	if (we->isPropulsiveRotationalEffortXValid()) {
+		cmd_vel.angular.x = we->getPropulsiveRotationalEffortX() / 100.0 * max_angular_x;
+		new_wrench_effort.setPropulsiveRotationalEffortX(we->getPropulsiveRotationalEffortX());
+	}
+	if (we->isPropulsiveRotationalEffortYValid()) {
+		cmd_vel.angular.y = we->getPropulsiveRotationalEffortY() / 100.0 * max_angular_y;
+		new_wrench_effort.setPropulsiveRotationalEffortY(we->getPropulsiveRotationalEffortY());
+	}
+	if (we->isPropulsiveRotationalEffortZValid()) {
+		cmd_vel.angular.z = we->getPropulsiveRotationalEffortZ() / 100.0 * max_angular_z;
+		new_wrench_effort.setPropulsiveRotationalEffortZ(we->getPropulsiveRotationalEffortZ());
+	}
+	current_wrench_effort_ = new_wrench_effort;
+	if (p_use_stamped) {
+		// since the jaus message does not have time stamp, we use current time
+		geometry_msgs::TwistStamped cmd_vel_stamped;
+		cmd_vel_stamped.header.stamp = ros::Time::now();
+		cmd_vel_stamped.twist = cmd_vel;
+		cmd_pub_.publish(cmd_vel_stamped);
+	} else {
+		cmd_pub_.publish(cmd_vel);
+	}
+	pAccessControl_ReceiveFSM->resetTimerAction();
+}
+
+void PrimitiveDriver_ReceiveFSM::stopMotionAction()
+{
+	/// Insert User Code HERE
+	geometry_msgs::Twist cmd_vel;
+	cmd_vel.linear.x = 0;
+	cmd_vel.linear.y = 0;
+	cmd_vel.linear.z = 0;
+	cmd_vel.angular.x = 0;
+	cmd_vel.angular.y = 0;
+	cmd_vel.angular.z = 0;
+	if (p_use_stamped) {
+		// since the jaus message does not have time stamp, we use current time
+		geometry_msgs::TwistStamped cmd_vel_stamped;
+		cmd_vel_stamped.header.stamp = ros::Time::now();
+		cmd_vel_stamped.twist = cmd_vel;
+		cmd_pub_.publish(cmd_vel_stamped);
+	} else {
+		cmd_pub_.publish(cmd_vel);
+	}
 }
 
 bool PrimitiveDriver_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
 {
-  //// By default, inherited guards call the parent function.
-  //// This can be replaced or modified as needed.
-  return pAccessControl_ReceiveFSM->isControllingClient(transportData );
+	//// By default, inherited guards call the parent function.
+	//// This can be replaced or modified as needed.
+	return pAccessControl_ReceiveFSM->isControllingClient(transportData );
 }
 
 void PrimitiveDriver_ReceiveFSM::odomReceived(const nav_msgs::Odometry::ConstPtr& odom)
 {
-//TODO: store odometry for odometry service
+	//TODO: store odometry for odometry service
 }
 
 };
