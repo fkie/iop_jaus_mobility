@@ -72,7 +72,7 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalWaypoint::ID);
 	//create ROS subscriber
-	p_travel_speed = p_tv_max;
+	p_travel_speed = 0.0;
 	p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
 	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_tv_max", 5, true);
 	std_msgs::Float32 ros_msg;
