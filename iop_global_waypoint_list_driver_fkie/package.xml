@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package>
+  <name>iop_global_waypoint_list_driver_fkie</name>
+  <version>1.0.0</version>
+  <description>Service to move the platform to specified list of waypoint.</description>
+
+  <maintainer email="alexander.tiderko@fkie.fraunhofer.de">Alexander Tiderko</maintainer>
+  <license>GPLv2</license>
+  <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>gps_common</build_depend>
+  <build_depend>iop_list_manager_fkie</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>tf</build_depend>
+  <run_depend>gps_common</run_depend>
+  <run_depend>iop_component_fkie</run_depend>
+  <run_depend>iop_list_manager_fkie</run_depend>
+  <run_depend>nav_msgs</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>tf</run_depend>
+
+  <export>
+    <iop_component_fkie plugin="${prefix}/plugin_iop.xml" />
+  </export>
+
+</package>

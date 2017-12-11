@@ -1,0 +1,10 @@
+<library path="libiop_global_waypoint_list_driver_fkie">
+  <class name="GlobalWaypointListDriver" type="iop::GlobalWaypointListDriverPlugin" base_class_type="iop::PluginInterface">
+    <description>
+      GlobalWaypointListDriver Service Plugin
+    </description>
+    <iop_service name="GlobalWaypointListDriver" id="urn:jaus:jss:mobility:GlobalWaypointListDriver" version="1.0">
+      <inherits_from id="urn:jaus:jss:core:ListManager" min_version="1.1"/>
+    </iop_service>
+  </class>
+</library>
