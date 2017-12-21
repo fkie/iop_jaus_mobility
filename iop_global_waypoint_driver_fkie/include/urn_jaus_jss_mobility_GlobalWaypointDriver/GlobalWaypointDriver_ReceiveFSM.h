@@ -22,6 +22,8 @@
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Bool.h>
+
 
 #include "GlobalWaypointDriver_ReceiveFSM_sm.h"
 
@@ -64,12 +66,14 @@ protected:
 	ros::Publisher p_pub_path;
 	ros::Publisher p_pub_pose;
 	ros::Publisher p_pub_tv_max;
+	ros::Subscriber p_sub_finished;
 	float p_travel_speed;
 	float p_tv_max;
 	std::string p_tf_frame_world;
 	ReportGlobalWaypoint p_current_waypoint;
 
 	void pStop();
+	void pRosFinished(const std_msgs::Bool::ConstPtr& state);
 
 };
 

@@ -35,6 +35,8 @@ GlobalWaypointListDriver_ReceiveFSM::GlobalWaypointListDriver_ReceiveFSM(urn_jau
 	p_tf_frame_world = "/world";
 	p_executing = false;
 	p_last_uid = 0;
+	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
+	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
 }
 
 
@@ -204,11 +206,22 @@ void GlobalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::Internal
 		ros_msg.data = p_travel_speed;
 		p_pub_tv_max.publish(ros_msg);
 	}
-	p_executing = true;
 	nav_msgs::Path path;
 	path.header.stamp = ros::Time::now();
 	path.header.frame_id = p_tf_frame_world;
 	std::vector<iop::InternalElement>::iterator it;
+	if (elements.size() == 0) {
+		p_current_element.getBody()->getActiveElementRec()->setElementUID(0);
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryActiveElement::ID, &p_current_element);
+		ReportGlobalWaypoint waypoint;
+		p_current_waypoint = waypoint;
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
+		stop_execution();
+	} else {
+		p_executing = true;
+	}
 	for (it = elements.begin(); it != elements.end(); ++it) {
 		geometry_msgs::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
 		if (it == elements.begin()) {
@@ -230,9 +243,15 @@ void GlobalWaypointListDriver_ReceiveFSM::stop_execution()
 		nav_msgs::Path path;
 		path.header.stamp = ros::Time::now();
 		p_pub_path.publish(path);
+		ReportGlobalWaypoint waypoint;
+		p_current_waypoint = waypoint;
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
+		p_last_uid = 0;
 		p_executing = false;
 		p_current_element.getBody()->getActiveElementRec()->setElementUID(0);
-		p_last_uid = 0;
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryActiveElement::ID, &p_current_element);
 	}
 }
 
@@ -243,6 +262,8 @@ void GlobalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::Bool::Con
 		bool finished = pListManager_ReceiveFSM->list_manager().finished(p_last_uid);
 		if (finished) {
 			ROS_DEBUG_NAMED("GlobalWaypointListDriver", "  there are futher elements available, execute!");
+		} else {
+			stop_execution();
 		}
 	}
 }
@@ -287,6 +308,7 @@ geometry_msgs::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_wa
 		if (wprec->isWaypointToleranceValid()) {
 			p_current_waypoint.getBody()->getGlobalWaypointRec()->setWaypointTolerance(wprec->getWaypointTolerance());
 		}
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
 	}
 	double northing, easting;
 	std::string zone;

@@ -30,6 +30,8 @@ GlobalWaypointDriver_ReceiveFSM::GlobalWaypointDriver_ReceiveFSM(urn_jaus_jss_co
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
 	p_tf_frame_world = "/world";
+	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
+	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
 }
 
 
@@ -76,6 +78,7 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	// p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
 	p_pub_pose = cfg.advertise<geometry_msgs::PoseStamped>("cmd_global_pose", 5);
 	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_travel_speed", 5, true);
+	p_sub_finished = cfg.subscribe<std_msgs::Bool>("global_way_point_reached", 5, &GlobalWaypointDriver_ReceiveFSM::pRosFinished, this);
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max.publish(ros_msg);
@@ -190,7 +193,6 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 		path.poses.push_back(pose);
 		p_pub_pose.publish(pose);
 	}
-
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
 //	this->p_pub_path.publish(path);
 }
@@ -202,10 +204,21 @@ void GlobalWaypointDriver_ReceiveFSM::pStop()
 	path.header.frame_id = this->p_tf_frame_world;
 	ReportGlobalWaypoint waypoint;
 	p_current_waypoint = waypoint;
+	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
+	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
 //	this->p_pub_path.publish(path);
 }
 
+void GlobalWaypointDriver_ReceiveFSM::pRosFinished(const std_msgs::Bool::ConstPtr& state)
+{
+	if (state->data) {
+		ROS_DEBUG_NAMED("GlobalWaypointDriver", "global waypoint reached");
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
+	}
+}
 
 bool GlobalWaypointDriver_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
 {
@@ -231,3 +244,4 @@ bool GlobalWaypointDriver_ReceiveFSM::waypointExists(SetTravelSpeed msg)
 
 
 };
+
