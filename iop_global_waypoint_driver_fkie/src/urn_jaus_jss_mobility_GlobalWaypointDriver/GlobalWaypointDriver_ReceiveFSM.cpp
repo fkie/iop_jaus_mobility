@@ -73,8 +73,9 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalWaypoint::ID);
 	//create ROS subscriber
 	p_travel_speed = 0.0;
-	p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
-	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_tv_max", 5, true);
+	// p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
+	p_pub_pose = cfg.advertise<geometry_msgs::PoseStamped>("cmd_global_pose", 5);
+	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_travel_speed", 5, true);
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max.publish(ros_msg);
@@ -121,8 +122,8 @@ void GlobalWaypointDriver_ReceiveFSM::setTravelSpeedAction(SetTravelSpeed msg, R
 	p_travel_speed = msg.getBody()->getTravelSpeedRec()->getSpeed();
 	ROS_DEBUG_NAMED("GlobalWaypointDriver", "setTravelSpeedAction from %d.%d.%d to %.2f", subsystem_id, node_id, component_id, p_travel_speed);
 	if (p_tv_max < p_travel_speed) {
-		ROS_DEBUG_NAMED("GlobalWaypointDriver", "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
 		p_travel_speed = p_tv_max;
+		ROS_DEBUG_NAMED("GlobalWaypointDriver", "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
 	}
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
@@ -176,7 +177,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	quat.setRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		ROS_INFO_NAMED("GlobalWaypointDriver", "new Waypoint lat: %.2f, lon: %.2f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		ROS_INFO_NAMED("GlobalWaypointDriver", "new Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
 		geometry_msgs::PoseStamped pose;
 		pose.header = path.header;
 		pose.pose.position.x = easting;
@@ -187,6 +188,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 		pose.pose.orientation.z = quat.z();
 		pose.pose.orientation.w = quat.w();
 		path.poses.push_back(pose);
+		p_pub_pose.publish(pose);
 	}
 
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);

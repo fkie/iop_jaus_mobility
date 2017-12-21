@@ -62,6 +62,7 @@ protected:
 	urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM;
 
 	ros::Publisher p_pub_path;
+	ros::Publisher p_pub_pose;
 	ros::Publisher p_pub_tv_max;
 	float p_travel_speed;
 	float p_tv_max;
