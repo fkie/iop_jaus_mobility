@@ -192,7 +192,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	}
 
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
-	this->p_pub_path.publish(path);
+//	this->p_pub_path.publish(path);
 }
 
 void GlobalWaypointDriver_ReceiveFSM::pStop()
@@ -203,7 +203,7 @@ void GlobalWaypointDriver_ReceiveFSM::pStop()
 	ReportGlobalWaypoint waypoint;
 	p_current_waypoint = waypoint;
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
-	this->p_pub_path.publish(path);
+//	this->p_pub_path.publish(path);
 }
 
 
