@@ -92,9 +92,9 @@ void GlobalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList 
 	JausAddress sender = transportData.getAddress();
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
 	jUnsignedShortInteger start_iud = msg.getBody()->getExecuteListRec()->getElementUID();
-	ROS_DEBUG_NAMED("GlobalWaypointListDriver", "execute waypoint list with speed %.2f, start uid: %d", speed, start_iud);
+	ROS_DEBUG_NAMED("GlobalWaypointListDriver", "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
 	if (!pListManager_ReceiveFSM->list_manager().execute_list(start_iud, speed)) {
-		ROS_DEBUG_NAMED("ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
+		ROS_WARN_NAMED("ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
 		RejectElementRequest reject;
 		reject.getBody()->getRejectElementRec()->setRequestID(0);
 		reject.getBody()->getRejectElementRec()->setResponseCode(pListManager_ReceiveFSM->list_manager().get_error_code());
@@ -182,7 +182,7 @@ bool GlobalWaypointListDriver_ReceiveFSM::elementExists(ExecuteList msg)
 bool GlobalWaypointListDriver_ReceiveFSM::elementSpecified(ExecuteList msg)
 {
 	jUnsignedShortInteger uid = msg.getBody()->getExecuteListRec()->getElementUID();
-	return (uid != 0);
+	return (uid != 0 && uid != 65535);
 }
 
 bool GlobalWaypointListDriver_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
@@ -238,8 +238,12 @@ void GlobalWaypointListDriver_ReceiveFSM::stop_execution()
 
 void GlobalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::Bool::ConstPtr& state)
 {
-	if (!state->data && p_last_uid != 0) {
-		pListManager_ReceiveFSM->list_manager().finished(p_last_uid);
+	if (state->data && p_last_uid != 0) {
+		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "execution finished");
+		bool finished = pListManager_ReceiveFSM->list_manager().finished(p_last_uid);
+		if (finished) {
+			ROS_DEBUG_NAMED("GlobalWaypointListDriver", "  there are futher elements available, execute!");
+		}
 	}
 }
 
@@ -291,7 +295,7 @@ geometry_msgs::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_wa
 	quat.setRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint lat: %.2f, lon: %.2f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
 		result.pose.position.x = easting;
 		result.pose.position.y = northing;
 		result.pose.position.z = alt;
