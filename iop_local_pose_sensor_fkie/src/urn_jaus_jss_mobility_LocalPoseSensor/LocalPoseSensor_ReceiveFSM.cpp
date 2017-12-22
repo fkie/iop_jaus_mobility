@@ -73,7 +73,7 @@ void LocalPoseSensor_ReceiveFSM::setupNotifications()
 	source_map[0] = "tf";
 	source_map[1] = "PoseStamped";
 	source_map[2] = "Odometry";
-	cfg.param("source", source, source, true, true, "", source_map);
+	cfg.param("source_type", source, source, true, true, "", source_map);
 	switch (source) {
 		case 1 :
 			p_pose_sub = cfg.subscribe<geometry_msgs::PoseStamped>("pose", 1, &LocalPoseSensor_ReceiveFSM::poseReceived, this);
