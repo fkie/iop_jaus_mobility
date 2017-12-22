@@ -65,7 +65,7 @@ _global_way_point_reached (std_msgs::Bool)_
 > Reports to the client service that the point is reached.
 
 
-## _iop_global_waypoint_list_driver_fkie:_ GlobalWaypointClientDriver
+## _iop_global_waypoint_list_driver_fkie:_ GlobalWaypointListDriver
 
 Forwards the list of global waypoints to ROS.
 
