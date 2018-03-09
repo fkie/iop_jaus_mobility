@@ -313,8 +313,7 @@ geometry_msgs::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_wa
 	double northing, easting;
 	std::string zone;
 	gps_common::LLtoUTM(lat, lon, northing, easting, zone);
-	tf::Quaternion quat;
-	quat.setRPY(roll, pitch, yaw);
+	tf::Quaternion quat = tf::createQuaternionFromRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
 		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
