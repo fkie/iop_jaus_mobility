@@ -6,10 +6,11 @@ project(iop_global_pose_sensor_fkie)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS 
              iop_accesscontrol_fkie
+             iop_component_fkie
              roscpp
-             )
-iop_init(COMPONENT_ID 38)
-
+             sensor_msgs
+)
+iop_init(COMPONENT_ID 0)
 
 catkin_package(
     LIBRARIES ${PROJECT_NAME}

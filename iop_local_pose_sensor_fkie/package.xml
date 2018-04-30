@@ -1,25 +1,21 @@
 <?xml version="1.0"?>
-<package>
+<package format="2">
   <name>iop_local_pose_sensor_fkie</name>
   <version>1.1.0</version>
   <description>Translation of the local position sensor service functionality to/from ROS</description>
 
+  <author>Alexander Tiderko</author>
   <maintainer email="alexander.tiderko@fkie.fraunhofer.de">Alexander Tiderko</maintainer>
   <license>GPLv2</license>
   <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
 
-
   <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>geometry_msgs</build_depend>
-  <build_depend>iop_accesscontrol_fkie</build_depend>
-  <build_depend>nav_msgs</build_depend>
-  <build_depend>roscpp</build_depend>
-  <build_depend>tf</build_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>iop_accesscontrol_fkie</run_depend>
-  <run_depend>iop_component_fkie</run_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>tf</run_depend>
+  <depend>geometry_msgs</depend>
+  <depend>iop_component_fkie</depend>
+  <depend>iop_management_fkie</depend>
+  <depend>nav_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>tf</depend>
 
   <export>
     <iop_component_fkie plugin="${prefix}/plugin_iop.xml" />
