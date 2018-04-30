@@ -1,0 +1,20 @@
+services:
+  - docker
+language: cpp
+env:
+  global:
+    - CATKIN_LINT=true
+    - CATKIN_LINT_ARGS='--package-path /root/catkin_ws/src/iop_core:/root/catkin_ws/src/iop_msgs'
+#    - CATKIN_CONFIG='--no-install'
+#    - VERBOSE_OUTPUT=true
+  matrix:
+    - ROS_DISTRO="indigo" ROS_REPO="ros"  UPSTREAM_WORKSPACE=file  $ROSINSTALL_FILENAME=".travis.rosinstall"
+    - ROS_DISTRO="jade" ROS_REPO="ros"   UPSTREAM_WORKSPACE=file
+    - ROS_DISTRO="kinetic" ROS_REPO="ros-shadow-fixed"  UPSTREAM_WORKSPACE=file
+    - ROS_DISTRO="kinetic" ROS_REPO="ros"  UPSTREAM_WORKSPACE=file
+    - ROS_DISTRO="lunar" ROS_REPO="ros"  UPSTREAM_WORKSPACE=file
+install:
+  - git clone https://github.com/ros-industrial/industrial_ci.git .ci_config
+script:
+  - .ci_config/travis.sh
+
