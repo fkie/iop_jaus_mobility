@@ -1,0 +1,10 @@
+<library path="libiop_velocity_state_sensor_fkie">
+  <class name="VelocityStateSensor" type="iop::VelocityStateSensorPlugin" base_class_type="iop::PluginInterface">
+    <description>
+      VelocityStateSensor Service Plugin
+    </description>
+    <iop_service name="VelocityStateSensor" id="urn:jaus:jss:mobility:VelocityStateSensor" version="1.0">
+      <inherits_from id="urn:jaus:jss:core:Events" min_version="1.0"/>
+    </iop_service>
+  </class>
+</library> 
