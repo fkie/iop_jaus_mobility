@@ -67,7 +67,7 @@ void VelocityStateSensor_ReceiveFSM::setupNotifications()
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryVelocityState::ID);
 }
 
-void VelocityStateSensor_ReceiveFSM::SendAction(QueryVelocityState msg, Receive::Body::ReceiveRec transportData)
+void VelocityStateSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
 {
 	/// Insert User Code HERE
 	ROS_DEBUG_NAMED("VelocityStateSensor", "request from %d.%d.%d",
@@ -76,7 +76,9 @@ void VelocityStateSensor_ReceiveFSM::SendAction(QueryVelocityState msg, Receive:
 									 transportData.getSrcNodeID(),
 									 transportData.getSrcComponentID());
 
-	this->sendJausMessage(p_report_velocity_state, sender);
+	if (strcmp(arg0.c_str(), "ReportVelocityState") == 0) {
+		this->sendJausMessage(p_report_velocity_state, sender);
+	}
 }
 
 void VelocityStateSensor_ReceiveFSM::odomReceived(const nav_msgs::Odometry::ConstPtr& odom)

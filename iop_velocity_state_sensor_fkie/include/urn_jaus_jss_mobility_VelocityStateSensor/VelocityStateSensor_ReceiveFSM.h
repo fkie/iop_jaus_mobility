@@ -55,7 +55,7 @@ public:
 	virtual void setupNotifications();
 
 	/// Action Methods
-	virtual void SendAction(QueryVelocityState msg, Receive::Body::ReceiveRec transportData);
+	virtual void SendAction(std::string arg0, Receive::Body::ReceiveRec transportData);
 
 
 	/// Guard Methods
