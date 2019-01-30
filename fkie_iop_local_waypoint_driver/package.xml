@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>fkie_iop_local_waypoint_driver</name>
+  <version>1.1.0</version>
+  <description>Service to move the platform given a single target waypoint using local coordinates.</description>
+
+  <author>Alexander Tiderko</author>
+  <maintainer email="alexander.tiderko@fkie.fraunhofer.de">Alexander Tiderko</maintainer>
+  <license>GPLv2</license>
+  <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <depend>geometry_msgs</depend>
+  <depend>fkie_iop_component</depend>
+  <depend>fkie_iop_management</depend>
+  <depend>nav_msgs</depend>
+  <depend>roscpp</depend>
+  <depend>std_msgs</depend>
+  <depend>tf</depend>
+
+  <export>
+    <fkie_iop_component plugin="${prefix}/plugin_iop.xml" />
+  </export>
+
+</package>

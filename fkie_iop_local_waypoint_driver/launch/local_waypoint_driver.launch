@@ -1,0 +1,24 @@
+<launch>
+  <arg name="ns" default="myrobot"/>
+  <arg name="id_subsystem" default="133"/>
+  <arg name="id_node" default="64"/>
+  <group ns="$(arg ns)">
+      <node name="iop_local_waypoint_driver" pkg="fkie_iop_component" type="iop_component">
+        <param name="capability_group" value="iop_bridge"/>
+        <rosparam param="services">
+          [
+            fkie_iop_local_waypoint_driver: "localWaypointDriver",
+            fkie_iop_discovery: "DiscoveryClient",
+            fkie_iop_accesscontrol: "AccessControl",
+            fkie_iop_events: "Events",
+            fkie_iop_events: "EventsClient",
+            fkie_iop_transport: "Transport",
+          ]
+        </rosparam>
+        <param name="iop_address" value="$(arg id_subsystem).$(arg id_node).33"/>
+        <param name="enable_ros_interface" value="false"/>
+        <param name="tv_max" value="1.0"/>
+        <param name="tf_frame_robot" value="base_link"/>
+    </node>
+  </group>
+</launch>
