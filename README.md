@@ -6,11 +6,11 @@ Build status of latest version:
 
 ### List of service plugins in this repository:
 
-[iop_global_pose_sensor_fkie: GlobalPoseSensor](iop_global_pose_sensor_fkie/README.md)  
-[iop_global_waypoint_driver_fkie: GlobalWaypointDriver](iop_global_waypoint_driver_fkie/README.md)  
-[iop_global_waypoint_list_driver_fkie: GlobalWaypointListDriver](iop_global_waypoint_list_driver_fkie/README.md)  
-[iop_local_pose_sensor_fkie: LocalPoseSensor](iop_local_pose_sensor_fkie/README.md)  
-[iop_primitive_driver_fkie: PrimitiveDriver](iop_primitive_driver_fkie/README.md)
+[fkie_iop_global_pose_sensor: GlobalPoseSensor](fkie_iop_global_pose_sensor/README.md)  
+[fkie_iop_global_waypoint_driver: GlobalWaypointDriver](fkie_iop_global_waypoint_driver/README.md)  
+[fkie_iop_global_waypoint_list_driver: GlobalWaypointListDriver](fkie_iop_global_waypoint_list_driver/README.md)  
+[fkie_iop_local_pose_sensor: LocalPoseSensor](fkie_iop_local_pose_sensor/README.md)  
+[fkie_iop_primitive_driver: PrimitiveDriver](fkie_iop_primitive_driver/README.md)
 
 
 
