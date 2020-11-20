@@ -82,8 +82,8 @@ before_install:
   - sudo apt-get install -y $PY_PRFX-catkin-pkg $PY_PRFX-rosdep $PY_PRFX-wstool ros-$ROS_DISTRO-ros-base
   - source /opt/ros/$ROS_DISTRO/setup.bash
   # Prepare rosdep to install dependencies.
-  - sudo rosdep init
-  - rosdep update --include-eol-distros  # Support EOL distros.
+  #- sudo rosdep init
+  #- rosdep update --include-eol-distros  # Support EOL distros.
 
 # Create a catkin workspace with the package under integration.
 install:
@@ -108,6 +108,9 @@ before_script:
   - if [[ -f $ROSINSTALL_FILE ]] ; then wstool merge $ROSINSTALL_FILE ; fi
   - wstool up
   # package depdencies: install using rosdep.
+  - sudo apt-get update -qq
+  - sudo rosdep init
+  - rosdep update --include-eol-distros  # Support EOL distros.
   - cd ~/catkin_ws
   - rosdep install -y --from-paths src --ignore-src --rosdistro $ROS_DISTRO
 
