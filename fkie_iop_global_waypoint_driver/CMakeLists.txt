@@ -5,10 +5,10 @@ project(fkie_iop_global_waypoint_driver)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-             geometry_msgs
-             gps_common
              fkie_iop_component
              fkie_iop_management
+             geometry_msgs
+             gps_common
              nav_msgs
              roscpp
              std_msgs
@@ -24,11 +24,12 @@ iop_export_service(urn_jaus_jss_mobility_GlobalWaypointDriver)
 catkin_package(
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS
-        geometry_msgs
-        gps_common
         fkie_iop_component
         fkie_iop_management
+        geometry_msgs
+        gps_common
         nav_msgs
+        roscpp
         std_msgs
         tf
 )

@@ -16,6 +16,7 @@ catkin_package(
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS
         fkie_iop_accesscontrol
+        roscpp
         sensor_msgs
 )
 

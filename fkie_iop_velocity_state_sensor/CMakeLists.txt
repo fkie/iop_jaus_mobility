@@ -16,6 +16,7 @@ catkin_package(
         fkie_iop_component
         fkie_iop_management
         nav_msgs
+        roscpp
 )
 
 iop_code_generator(

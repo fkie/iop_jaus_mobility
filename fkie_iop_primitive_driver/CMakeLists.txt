@@ -5,9 +5,9 @@ project(fkie_iop_primitive_driver)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS 
-             geometry_msgs
              fkie_iop_component
              fkie_iop_management
+             geometry_msgs
              nav_msgs
              roscpp
              tf
@@ -21,10 +21,11 @@ iop_init(COMPONENT_ID 0)
 catkin_package(
     LIBRARIES ${PROJECT_NAME}
     CATKIN_DEPENDS
-        geometry_msgs
         fkie_iop_component
         fkie_iop_management
+        geometry_msgs
         nav_msgs
+        roscpp
         tf
 )
 
