@@ -21,6 +21,7 @@
 #include <ros/ros.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <sensor_msgs/NavSatFix.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Bool.h>
 
@@ -65,6 +66,7 @@ protected:
 
 	ros::Publisher p_pub_path;
 	ros::Publisher p_pub_pose;
+	ros::Publisher p_pub_fix;
 	ros::Publisher p_pub_tv_max;
 	ros::Subscriber p_sub_finished;
 	float p_travel_speed;

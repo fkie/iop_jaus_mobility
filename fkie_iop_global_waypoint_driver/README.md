@@ -21,6 +21,10 @@ _cmd_global_pose (geometry_msgs::PoseStamped)_
 
 > The command position.
 
+_cmd_fix (sensor_msgs::NavSatFix)_
+
+> Alternative command position without orientation.
+
 _cmd_travel_speed (std_msgs::Float32)_, latched
 
 > The maximum speed configured by parameter or send from OCU. Speed from OCU is always smaller or equal to parameterized value.
