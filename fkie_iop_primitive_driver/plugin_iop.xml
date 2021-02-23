@@ -1,10 +1,5 @@
-<library path="libfkie_iop_primitive_driver">
-  <class name="PrimitiveDriver" type="iop::PrimitiveDriverPlugin" base_class_type="iop::PluginInterface">
-    <description>
-      PrimitiveDriver Service Plugin
-    </description>
-    <iop_service name="PrimitiveDriver" id="urn:jaus:jss:mobility:PrimitiveDriver" version="1.0">
-      <inherits_from id="urn:jaus:jss:core:Management" min_version="1.0"/>
-    </iop_service>
-  </class>
+<library path="fkie_iop_primitive_driver">
+	<class name="PrimitiveDriver" type="urn_jaus_jss_mobility_PrimitiveDriver::PrimitiveDriverService" base_class_type="JTS::Service"
+		id="urn:jaus:jss:mobility:PrimitiveDriver" version="1.0">
+	</class>
 </library>

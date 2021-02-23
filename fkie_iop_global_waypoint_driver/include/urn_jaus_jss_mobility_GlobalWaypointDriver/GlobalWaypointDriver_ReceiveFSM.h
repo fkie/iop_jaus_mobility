@@ -13,20 +13,22 @@
 #include "InternalEvents/Receive.h"
 #include "InternalEvents/Send.h"
 
-#include "urn_jaus_jss_core_Transport/Transport_ReceiveFSM.h"
-#include "urn_jaus_jss_core_Events/Events_ReceiveFSM.h"
-#include "urn_jaus_jss_core_AccessControl/AccessControl_ReceiveFSM.h"
 #include "urn_jaus_jss_core_Management/Management_ReceiveFSM.h"
-
-#include <ros/ros.h>
-#include <nav_msgs/Path.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <sensor_msgs/NavSatFix.h>
-#include <std_msgs/Float32.h>
-#include <std_msgs/Bool.h>
+#include "urn_jaus_jss_core_AccessControl/AccessControl_ReceiveFSM.h"
+#include "urn_jaus_jss_core_Events/Events_ReceiveFSM.h"
+#include "urn_jaus_jss_core_Transport/Transport_ReceiveFSM.h"
 
 
 #include "GlobalWaypointDriver_ReceiveFSM_sm.h"
+#include <rclcpp/rclcpp.hpp>
+#include <fkie_iop_component/iop_component.hpp>
+
+#include <nav_msgs/msg/path.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <std_msgs/msg/float32.hpp>
+#include <std_msgs/msg/bool.hpp>
+
 
 namespace urn_jaus_jss_mobility_GlobalWaypointDriver
 {
@@ -34,11 +36,12 @@ namespace urn_jaus_jss_mobility_GlobalWaypointDriver
 class DllExport GlobalWaypointDriver_ReceiveFSM : public JTS::StateMachine
 {
 public:
-	GlobalWaypointDriver_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM);
+	GlobalWaypointDriver_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM);
 	virtual ~GlobalWaypointDriver_ReceiveFSM();
 
 	/// Handle notifications on parent state changes
 	virtual void setupNotifications();
+	virtual void setupIopConfiguration();
 
 	/// Action Methods
 	virtual void resetTravelSpeedAction();
@@ -58,27 +61,28 @@ public:
 
 protected:
 
-    /// References to parent FSMs
-	urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
-	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
-	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
+	/// References to parent FSMs
 	urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM;
+	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
+	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
+	urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
 
-	ros::Publisher p_pub_path;
-	ros::Publisher p_pub_pose;
-	ros::Publisher p_pub_fix;
-	ros::Publisher p_pub_tv_max;
-	ros::Subscriber p_sub_finished;
+	std::shared_ptr<iop::Component> cmp;
+	rclcpp::Logger logger;
+	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr p_pub_pose;
+	rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr p_pub_fix;
+	rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr p_pub_tv_max;
+	rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr p_sub_finished;
 	float p_travel_speed;
 	float p_tv_max;
 	std::string p_tf_frame_world;
 	ReportGlobalWaypoint p_current_waypoint;
 
 	void pStop();
-	void pRosFinished(const std_msgs::Bool::ConstPtr& state);
+	void pRosFinished(const std_msgs::msg::Bool::SharedPtr state);
 
 };
 
-};
+}
 
 #endif // GLOBALWAYPOINTDRIVER_RECEIVEFSM_H

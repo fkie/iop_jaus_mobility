@@ -1,24 +1,32 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(fkie_iop_velocity_state_sensor)
 
-find_package(catkin REQUIRED COMPONENTS
-			 fkie_iop_component
-             fkie_iop_management
-             nav_msgs
-             roscpp
-) 
+# Default to C99
+if(NOT CMAKE_C_STANDARD)
+  set(CMAKE_C_STANDARD 99)
+endif()
 
-iop_init(COMPONENT_ID 0)
+# Default to C++14
+if(NOT CMAKE_CXX_STANDARD)
+  set(CMAKE_CXX_STANDARD 14)
+endif()
 
-catkin_package(
-    LIBRARIES ${PROJECT_NAME}
-    CATKIN_DEPENDS
-        fkie_iop_component
-        fkie_iop_management
-        nav_msgs
-        roscpp
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic -Wno-ignored-qualifiers)
+endif()
+
+find_package(ament_cmake REQUIRED)
+find_package(fkie_iop_management REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+
+###############
+## setup IOP ##
+###############
+iop_init()
+iop_export_service(
+  urn_jaus_jss_mobility_VelocityStateSensor
 )
-
 iop_code_generator(
   IDLS
     urn.jaus.jss.core-v1.0/Events.xml
@@ -28,40 +36,51 @@ iop_code_generator(
   OVERRIDES
     include/urn_jaus_jss_mobility_VelocityStateSensor/VelocityStateSensor_ReceiveFSM.h
     src/urn_jaus_jss_mobility_VelocityStateSensor/VelocityStateSensor_ReceiveFSM.cpp
-    src/main.cpp
   EXTERN_SERVICES
     urn_jaus_jss_core_Events
     urn_jaus_jss_core_Transport
   GENERATED_SOURCES cppfiles
 )
 
-include_directories(${catkin_INCLUDE_DIRS})
+###########
+## Build ##
+###########
+set(dependencies
+  fkie_iop_management
+  geometry_msgs
+  nav_msgs
+)
 
-add_library(${PROJECT_NAME}
-            src/VelocityStateSensorPlugin.cpp
+include_directories(
+  ${IOP_COMPONENT_INCLUDE_DIRS}
+)
+
+add_library(${PROJECT_NAME} SHARED
             ${cppfiles}
 )
 
-## Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}
-                      ${catkin_LIBRARIES}
-)
+ament_target_dependencies(${PROJECT_NAME} ${dependencies})
+
+#############
+## Install ##
+#############
 
 install(
-  DIRECTORY ${IOP_INSTALL_INCLUDE_DIRS} DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+  DIRECTORY ${IOP_INSTALL_INCLUDE_DIRS}
+  DESTINATION include/${PROJECT_NAME}
   PATTERN "*.old" EXCLUDE
   PATTERN "*.gen" EXCLUDE
 )
 
-# Mark executables and/or libraries for installation
 install(TARGETS ${PROJECT_NAME}
-  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-## Mark other files for installation (e.g. launch and bag files, etc.)
-install(
-   FILES ./plugin_iop.xml
-   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)
+ament_export_include_directories(include ${IOP_COMPONENT_INCLUDE_DIRS})
+ament_export_libraries(${PROJECT_NAME})
+ament_export_dependencies(${dependencies})
+pluginlib_export_plugin_description_file(fkie_iop_component plugin_iop.xml)
+
+ament_package()

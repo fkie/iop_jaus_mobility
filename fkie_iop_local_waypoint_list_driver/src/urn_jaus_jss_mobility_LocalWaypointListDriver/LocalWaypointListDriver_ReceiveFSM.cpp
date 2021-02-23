@@ -1,10 +1,9 @@
 
 
 #include "urn_jaus_jss_mobility_LocalWaypointListDriver/LocalWaypointListDriver_ReceiveFSM.h"
-
-#include <gps_common/conversions.h>
-#include <tf/transform_datatypes.h>
-#include <fkie_iop_component/iop_component.h>
+#include <fkie_iop_component/iop_config.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 
 
@@ -15,7 +14,8 @@ namespace urn_jaus_jss_mobility_LocalWaypointListDriver
 
 
 
-LocalWaypointListDriver_ReceiveFSM::LocalWaypointListDriver_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_ListManager::ListManager_ReceiveFSM* pListManager_ReceiveFSM)
+LocalWaypointListDriver_ReceiveFSM::LocalWaypointListDriver_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_ListManager::ListManager_ReceiveFSM* pListManager_ReceiveFSM, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM)
+: logger(cmp->get_logger().get_child("LocalWaypointListDriver"))
 {
 
 	/*
@@ -25,11 +25,12 @@ LocalWaypointListDriver_ReceiveFSM::LocalWaypointListDriver_ReceiveFSM(urn_jaus_
 	 */
 	context = new LocalWaypointListDriver_ReceiveFSMContext(*this);
 
-	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
-	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
-	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
-	this->pManagement_ReceiveFSM = pManagement_ReceiveFSM;
 	this->pListManager_ReceiveFSM = pListManager_ReceiveFSM;
+	this->pManagement_ReceiveFSM = pManagement_ReceiveFSM;
+	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
+	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
+	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
+	this->cmp = cmp;
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
 	p_tf_frame_robot = "base_link";
@@ -72,7 +73,20 @@ void LocalWaypointListDriver_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready_Controlled", pListManager_ReceiveFSM->getHandler(), "InternalStateChange_To_ListManager_ReceiveFSM_Receiving_Ready_Controlled", "LocalWaypointListDriver_ReceiveFSM");
 	registerNotification("Receiving_Ready", pListManager_ReceiveFSM->getHandler(), "InternalStateChange_To_ListManager_ReceiveFSM_Receiving_Ready", "LocalWaypointListDriver_ReceiveFSM");
 	registerNotification("Receiving", pListManager_ReceiveFSM->getHandler(), "InternalStateChange_To_ListManager_ReceiveFSM_Receiving", "LocalWaypointListDriver_ReceiveFSM");
-	iop::Config cfg("~LocalWaypointListDriver");
+}
+
+
+void LocalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
+{
+	iop::Config cfg(cmp, "LocalWaypointListDriver");
+	cfg.declare_param<std::string>("tf_frame_robot", p_tf_frame_robot, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
+		"TF frame used in ROS for local coordinates. This value is set in each command message.",
+		"Default: 'base_link'");
+	cfg.declare_param<double>("tv_max", p_tv_max, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum allowed speed.",
+		"Default: 1.0");
 	cfg.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
 	cfg.param("tv_max", p_tv_max, p_tv_max);
 
@@ -81,12 +95,12 @@ void LocalWaypointListDriver_ReceiveFSM::setupNotifications()
 	pListManager_ReceiveFSM->list_manager().register_supported_element(SetLocalWaypoint::ID, this);
 	//create ROS subscriber
 	p_travel_speed = 0.0;
-	p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_local_waypoints", 5);
-	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_travel_speed", 5);
-	p_sub_finished = cfg.subscribe<std_msgs::Bool>("local_way_points_finished", 5, &LocalWaypointListDriver_ReceiveFSM::pRosFinished, this);
-	std_msgs::Float32 ros_msg;
+	p_pub_path = cfg.create_publisher<nav_msgs::msg::Path>("cmd_local_waypoints", 5);
+	p_pub_tv_max = cfg.create_publisher<std_msgs::msg::Float32>("cmd_travel_speed", 5);
+	p_sub_finished = cfg.create_subscription<std_msgs::msg::Bool>("local_way_points_finished", 5, std::bind(&LocalWaypointListDriver_ReceiveFSM::pRosFinished, this, std::placeholders::_1));
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 }
 
 void LocalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList msg, Receive::Body::ReceiveRec transportData)
@@ -94,9 +108,9 @@ void LocalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList m
 	JausAddress sender = transportData.getAddress();
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
 	jUnsignedShortInteger start_iud = msg.getBody()->getExecuteListRec()->getElementUID();
-	ROS_DEBUG_NAMED("LocalWaypointListDriver", "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
+	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
 	if (!pListManager_ReceiveFSM->list_manager().execute_list(start_iud, speed)) {
-		ROS_WARN_NAMED("ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
+		RCLCPP_WARN(logger, "ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
 		RejectElementRequest reject;
 		reject.getBody()->getRejectElementRec()->setRequestID(0);
 		reject.getBody()->getRejectElementRec()->setResponseCode(pListManager_ReceiveFSM->list_manager().get_error_code());
@@ -107,31 +121,31 @@ void LocalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList m
 void LocalWaypointListDriver_ReceiveFSM::modifyTravelSpeedAction(ExecuteList msg)
 {
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
-	ROS_DEBUG_NAMED("LocalWaypointListDriver", "modify travel speed to %.2f", speed);
+	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "modify travel speed to %.2f", speed);
 	p_travel_speed = speed;
 	if (p_travel_speed > p_tv_max) {
-		ROS_DEBUG_NAMED("LocalWaypointListDriver", "  reset travel speed to max %.2f", p_tv_max);
+		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "  reset travel speed to max %.2f", p_tv_max);
 		p_travel_speed = p_tv_max;
 	}
-	std_msgs::Float32 ros_msg;
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 }
 
 void LocalWaypointListDriver_ReceiveFSM::resetTravelSpeedAction()
 {
-	ROS_DEBUG_NAMED("LocalWaypointListDriver", "reset travel speed to default: %.2f", 0.0);
+	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "reset travel speed to default: %.2f", 0.0);
 	p_travel_speed = 0.0;
-	std_msgs::Float32 ros_msg;
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 }
 
 void LocalWaypointListDriver_ReceiveFSM::sendReportActiveElementAction(QueryActiveElement msg, Receive::Body::ReceiveRec transportData)
 {
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
-	ROS_DEBUG_NAMED("LocalWaypointListDriver", "report active element %d to %s", cuid, requester.str().c_str());
+	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "report active element %d to %s", cuid, requester.str().c_str());
 	ReportActiveElement reply;
 	reply.getBody()->getActiveElementRec()->setElementUID(cuid);
 	sendJausMessage(reply, requester);
@@ -142,12 +156,12 @@ void LocalWaypointListDriver_ReceiveFSM::sendReportLocalWaypointAction(QueryLoca
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
-		ROS_DEBUG_NAMED("LocalWaypointListDriver", "report current local point (uid: %d) to %s", cuid, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "report current local point (uid: %d) to %s", cuid, requester.str().c_str());
 		iop::InternalElement el = pListManager_ReceiveFSM->list_manager().get_element(cuid);
 		if (el.get_uid() != 0) {
 			ReportLocalWaypoint reply;
 			reply.decode(el.get_report().getBody()->getElementRec()->getElementData()->getData());
-			ROS_DEBUG_NAMED("LocalWaypointListDriver", "  local waypoint: x %.2f, y %.2f",
+			RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "  local waypoint: x %.2f, y %.2f",
 					reply.getBody()->getLocalWaypointRec()->getX(), reply.getBody()->getLocalWaypointRec()->getY());
 			sendJausMessage(reply, requester);
 		}
@@ -161,7 +175,7 @@ void LocalWaypointListDriver_ReceiveFSM::sendReportTravelSpeedAction(QueryTravel
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
 		JausAddress requester = transportData.getAddress();
-		ROS_DEBUG_NAMED("LocalWaypointListDriver", "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
 		ReportTravelSpeed reply;
 		reply.getBody()->getTravelSpeedRec()->setSpeed(p_travel_speed);
 		sendJausMessage(reply, requester);
@@ -202,12 +216,12 @@ void LocalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::InternalE
 		if (p_travel_speed > p_tv_max) {
 			p_travel_speed = p_tv_max;
 		}
-		std_msgs::Float32 ros_msg;
+		auto ros_msg = std_msgs::msg::Float32();
 		ros_msg.data = p_travel_speed;
-		p_pub_tv_max.publish(ros_msg);
+		p_pub_tv_max->publish(ros_msg);
 	}
-	nav_msgs::Path path;
-	path.header.stamp = ros::Time::now();
+	auto path = nav_msgs::msg::Path();
+	path.header.stamp = cmp->now();
 	path.header.frame_id = p_tf_frame_robot;
 	std::vector<iop::InternalElement>::iterator it;
 	if (elements.size() == 0) {
@@ -224,26 +238,26 @@ void LocalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::InternalE
 		p_executing = true;
 	}
 	for (it = elements.begin(); it != elements.end(); ++it) {
-		geometry_msgs::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
+		geometry_msgs::msg::PoseStamped::SharedPtr pose = get_pose_from_waypoint(*it, it == elements.begin());
 		if (it == elements.begin()) {
 			pListManager_ReceiveFSM->list_manager().set_current_element(it->get_uid());
 			p_current_element.getBody()->getActiveElementRec()->setElementUID(it->get_uid());
 			pEvents_ReceiveFSM->get_event_handler().set_report(QueryActiveElement::ID, &p_current_element);
 			pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalWaypoint::ID, &p_current_waypoint);
 		}
-		pose.header = path.header;
-		path.poses.push_back(pose);
+		pose->header = path.header;
+		path.poses.push_back(*pose.get());
 		p_last_uid = it->get_uid();
 	}
-	p_pub_path.publish(path);
+	p_pub_path->publish(path);
 }
 
 void LocalWaypointListDriver_ReceiveFSM::stop_execution()
 {
 	if (p_executing) {
-		nav_msgs::Path path;
-		path.header.stamp = ros::Time::now();
-		p_pub_path.publish(path);
+		auto path = nav_msgs::msg::Path();
+		path.header.stamp = cmp->now();
+		p_pub_path->publish(path);
 		ReportLocalWaypoint waypoint;
 		p_current_waypoint = waypoint;
 		p_current_waypoint.getBody()->getLocalWaypointRec()->setX(0.0);
@@ -257,24 +271,24 @@ void LocalWaypointListDriver_ReceiveFSM::stop_execution()
 	}
 }
 
-void LocalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::Bool::ConstPtr& state)
+void LocalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool::SharedPtr state)
 {
 	if (state->data && p_last_uid != 0) {
-		ROS_DEBUG_NAMED("LocalWaypointListDriver", "execution finished");
+		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "execution finished");
 		bool finished = pListManager_ReceiveFSM->list_manager().finished(p_last_uid);
 		if (finished) {
-			ROS_DEBUG_NAMED("LocalWaypointListDriver", "  there are futher elements available, execute!");
+			RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "  there are futher elements available, execute!");
 		} else {
 			stop_execution();
 		}
 	}
 }
 
-geometry_msgs::PoseStamped LocalWaypointListDriver_ReceiveFSM::get_pose_from_waypoint(iop::InternalElement& element, bool update_current)
+geometry_msgs::msg::PoseStamped::SharedPtr LocalWaypointListDriver_ReceiveFSM::get_pose_from_waypoint(iop::InternalElement& element, bool update_current)
 {
 	SetLocalWaypoint wp;
 	wp.decode(element.get_report().getBody()->getElementRec()->getElementData()->getData());
-	geometry_msgs::PoseStamped result;
+	auto result = std::make_shared<geometry_msgs::msg::PoseStamped>();
 	double x, y, z = 0.0;
 	double roll, pitch, yaw = 0.0;
 	SetLocalWaypoint::Body::LocalWaypointRec *wprec = wp.getBody()->getLocalWaypointRec();
@@ -312,18 +326,19 @@ geometry_msgs::PoseStamped LocalWaypointListDriver_ReceiveFSM::get_pose_from_way
 		}
 		pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalWaypoint::ID, &p_current_waypoint);
 	}
-	tf::Quaternion quat = tf::createQuaternionFromRPY(roll, pitch, yaw);
+	tf2::Quaternion quat;
+	quat.setRPY(roll, pitch, yaw);
 
-	ROS_DEBUG_NAMED("LocalWaypointListDriver", "add Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", x, y, z, roll, pitch, yaw);
-	result.pose.position.x = x;
-	result.pose.position.y = y;
-	result.pose.position.z = z;
-	result.pose.orientation.x = quat.x();
-	result.pose.orientation.y = quat.y();
-	result.pose.orientation.z = quat.z();
-	result.pose.orientation.w = quat.w();
+	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "add Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", x, y, z, roll, pitch, yaw);
+	result->pose.position.x = x;
+	result->pose.position.y = y;
+	result->pose.position.z = z;
+	result->pose.orientation.x = quat.x();
+	result->pose.orientation.y = quat.y();
+	result->pose.orientation.z = quat.z();
+	result->pose.orientation.w = quat.w();
 
 	return result;
 }
 
-};
+}

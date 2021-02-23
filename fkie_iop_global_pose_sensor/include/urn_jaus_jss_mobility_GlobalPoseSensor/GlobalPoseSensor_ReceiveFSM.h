@@ -34,16 +34,17 @@ along with this program; or you can read the full license at
 #include "InternalEvents/Receive.h"
 #include "InternalEvents/Send.h"
 
-#include "urn_jaus_jss_core_Transport/Transport_ReceiveFSM.h"
-#include "urn_jaus_jss_core_Events/Events_ReceiveFSM.h"
 #include "urn_jaus_jss_core_AccessControl/AccessControl_ReceiveFSM.h"
-
-#include <ros/ros.h>
-#include <sensor_msgs/NavSatFix.h>
-#include <sensor_msgs/Imu.h>
-
+#include "urn_jaus_jss_core_Events/Events_ReceiveFSM.h"
+#include "urn_jaus_jss_core_Transport/Transport_ReceiveFSM.h"
 
 #include "GlobalPoseSensor_ReceiveFSM_sm.h"
+#include <rclcpp/rclcpp.hpp>
+#include <fkie_iop_component/iop_component.hpp>
+
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+
 
 namespace urn_jaus_jss_mobility_GlobalPoseSensor
 {
@@ -51,11 +52,12 @@ namespace urn_jaus_jss_mobility_GlobalPoseSensor
 class DllExport GlobalPoseSensor_ReceiveFSM : public JTS::StateMachine
 {
 public:
-	GlobalPoseSensor_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM);
+	GlobalPoseSensor_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM);
 	virtual ~GlobalPoseSensor_ReceiveFSM();
 
 	/// Handle notifications on parent state changes
 	virtual void setupNotifications();
+	virtual void setupIopConfiguration();
 
 	/// Action Methods
 	virtual void SendAction(std::string arg0, Receive::Body::ReceiveRec transportData);
@@ -72,22 +74,24 @@ public:
 
 protected:
 
-    /// References to parent FSMs
-	urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
-	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
+	/// References to parent FSMs
 	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
+	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
+	urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
 
-	ros::Subscriber p_navsatfix_sub;
-	ros::Subscriber p_imu_sub;
+	std::shared_ptr<iop::Component> cmp;
+	rclcpp::Logger logger;
+	rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr p_navsatfix_sub;
+	rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr p_imu_sub;
 	ReportGlobalPose p_report_global_pose;
 	double p_yaw, p_pitch, p_roll;
 	bool p_is_ori_valid;
 
-	void fixReceived(const sensor_msgs::NavSatFix::ConstPtr& fix);
-	void imuReceived(const sensor_msgs::Imu::ConstPtr& imu);
+	void fixReceived(const sensor_msgs::msg::NavSatFix::SharedPtr fix);
+	void imuReceived(const sensor_msgs::msg::Imu::SharedPtr imu);
 
 };
 
-};
+}
 
 #endif // GLOBALPOSESENSOR_RECEIVEFSM_H

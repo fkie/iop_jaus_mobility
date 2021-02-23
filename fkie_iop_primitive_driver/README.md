@@ -31,19 +31,15 @@ _max_angular_z (double_, Default: 1.5)
 
 > The maximum yaw rotation velocity allowed in radians/sec. Negative value inverts the direction.
 
-_use_stamped (bool_, Default: true)
-
-> If *true* use _geometry_msgs::TwistStamped_ instead of _geometry_msgs::Twist_ to publish the commands.
-
 #### Publisher:
 
 _cmd_vel (geometry_msgs::TwistStamped)_
 
-> Twist commands for the platform, if _use_stamped_ is set to *true*.
+> Twist commands for the platform.
 
 _cmd_vel (geometry_msgs::Twist)_
 
-> Twist commands for the platform, if _use_stamped_ is set to *false*.
+> Twist commands for the platform.
 
 #### Subscriber:
 

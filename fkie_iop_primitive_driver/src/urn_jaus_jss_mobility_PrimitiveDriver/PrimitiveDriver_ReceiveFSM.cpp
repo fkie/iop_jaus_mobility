@@ -22,7 +22,7 @@ along with this program; or you can read the full license at
 
 
 #include "urn_jaus_jss_mobility_PrimitiveDriver/PrimitiveDriver_ReceiveFSM.h"
-#include <fkie_iop_component/iop_config.h>
+#include <fkie_iop_component/iop_config.hpp>
 
 
 
@@ -33,7 +33,8 @@ namespace urn_jaus_jss_mobility_PrimitiveDriver
 
 
 
-PrimitiveDriver_ReceiveFSM::PrimitiveDriver_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM)
+PrimitiveDriver_ReceiveFSM::PrimitiveDriver_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM)
+: logger(cmp->get_logger().get_child("PrimitiveDriver"))
 {
 
 	/*
@@ -43,18 +44,17 @@ PrimitiveDriver_ReceiveFSM::PrimitiveDriver_ReceiveFSM(urn_jaus_jss_core_Transpo
 	 */
 	context = new PrimitiveDriver_ReceiveFSMContext(*this);
 
-	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
-	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
-	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
 	this->pManagement_ReceiveFSM = pManagement_ReceiveFSM;
+	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
+	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
+	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
+	this->cmp = cmp;
 	max_linear_x = 3.0;
 	max_linear_y = 0;
 	max_linear_z = 0;
 	max_angular_x = 0.0;
 	max_angular_y = 0.0;
 	max_angular_z = 1.5;
-	p_use_stamped = true;
-	p_pnh = ros::NodeHandle("~");
 }
 
 
@@ -91,28 +91,53 @@ void PrimitiveDriver_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving_Ready", "PrimitiveDriver_ReceiveFSM");
 	registerNotification("Receiving", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving", "PrimitiveDriver_ReceiveFSM");
 
-	iop::Config cfg("~PrimitiveDriver");
-	cfg.param("max_linear_x", max_linear_x, max_linear_x, true, false, "m/s");
-	cfg.param("max_linear_y", max_linear_y, max_linear_y, true, false, "m/s");
-	cfg.param("max_linear_z", max_linear_z, max_linear_z, true, false, "m/s");
-	cfg.param("max_angular_x", max_angular_x, max_angular_x, true, false, "rad");
-	cfg.param("max_angular_y", max_angular_y, max_angular_y, true, false, "rad");
-	cfg.param("max_angular_z", max_angular_z, max_angular_z, true, false, "rad");
-	cfg.param("use_stamped", p_use_stamped, p_use_stamped);
+}
+
+
+void PrimitiveDriver_ReceiveFSM::setupIopConfiguration()
+{
+	iop::Config cfg(cmp, "PrimitiveDriver");
+	cfg.declare_param<double>("max_linear_x", max_linear_x, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum forward velocity allowed in meters/sec. Negative value inverts the direction.",
+		"Default: 3.5 m/sec");
+	cfg.declare_param<double>("max_linear_y", max_linear_y, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum y velocity allowed in meters/sec. Negative value inverts the direction.",
+		"Default: 0 m/sec");
+	cfg.declare_param<double>("max_linear_z", max_linear_z, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum z velocity allowed in meters/sec. Negative value inverts the direction.",
+		"Default: 0 m/sec");
+	cfg.declare_param<double>("max_angular_x", max_angular_x, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum roll rotation velocity allowed in radians/sec. Negative value inverts the direction.",
+		"Default: 0 radians/sec");
+	cfg.declare_param<double>("max_angular_y", max_angular_y, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum pitch rotation velocity allowed in radians/sec. Negative value inverts the direction.",
+		"Default: 0 radians/sec");
+	cfg.declare_param<double>("max_angular_z", max_angular_z, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum yaw rotation velocity allowed in radians/sec. Negative value inverts the direction.",
+		"Default: 1.5 radians/sec");
+	cfg.param("max_linear_x", max_linear_x, max_linear_x, true, "m/s");
+	cfg.param("max_linear_y", max_linear_y, max_linear_y, true, "m/s");
+	cfg.param("max_linear_z", max_linear_z, max_linear_z, true, "m/s");
+	cfg.param("max_angular_x", max_angular_x, max_angular_x, true, "rad");
+	cfg.param("max_angular_y", max_angular_y, max_angular_y, true, "rad");
+	cfg.param("max_angular_z", max_angular_z, max_angular_z, true, "rad");
 //        odom_sub_ = p_nh.subscribe<nav_msgs::Odometry>("odom", 1, &PrimitiveDriver_ReceiveFSM::odomReceived, this);
 	//create ROS subscriber
-	if (p_use_stamped) {
-		cmd_pub_ = cfg.advertise<geometry_msgs::TwistStamped>("cmd_vel", 5);
-	} else {
-		cmd_pub_ = cfg.advertise<geometry_msgs::Twist>("cmd_vel", 5);
-	}
+	cmd_stamped_pub_ = cfg.create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_stamped", 5);
+	cmd_pub_ = cfg.create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 5);
 }
 
 void PrimitiveDriver_ReceiveFSM::sendReportWrenchEffortAction(QueryWrenchEffort msg, Receive::Body::ReceiveRec transportData)
 {
 	/// Insert User Code HERE
 	JausAddress sender = transportData.getAddress();
-	ROS_DEBUG_NAMED("PrimitiveDriver", "report WrenchEffortAction to %s", sender.str().c_str());
+	RCLCPP_DEBUG(logger, "PrimitiveDriver", "report WrenchEffortAction to %s", sender.str().c_str());
 	ReportWrenchEffort response;
 	response.getBody()->setWrenchEffortRec(current_wrench_effort_);
 	this->sendJausMessage(response, sender);
@@ -123,7 +148,7 @@ void PrimitiveDriver_ReceiveFSM::setWrenchEffortAction(SetWrenchEffort msg, Rece
 	/// Insert User Code HERE
 	SetWrenchEffort::Body::WrenchEffortRec *we= msg.getBody()->getWrenchEffortRec();
 	ReportWrenchEffort::Body::WrenchEffortRec new_wrench_effort;
-	geometry_msgs::Twist cmd_vel;
+	auto cmd_vel = geometry_msgs::msg::Twist();
 	if (we->isPropulsiveLinearEffortXValid()) {
 		cmd_vel.linear.x = we->getPropulsiveLinearEffortX() / 100.0 * max_linear_x ;
 		new_wrench_effort.setPropulsiveLinearEffortX(we->getPropulsiveLinearEffortX());
@@ -149,37 +174,32 @@ void PrimitiveDriver_ReceiveFSM::setWrenchEffortAction(SetWrenchEffort msg, Rece
 		new_wrench_effort.setPropulsiveRotationalEffortZ(we->getPropulsiveRotationalEffortZ());
 	}
 	current_wrench_effort_ = new_wrench_effort;
-	if (p_use_stamped) {
-		// since the jaus message does not have time stamp, we use current time
-		geometry_msgs::TwistStamped cmd_vel_stamped;
-		cmd_vel_stamped.header.stamp = ros::Time::now();
-		cmd_vel_stamped.twist = cmd_vel;
-		cmd_pub_.publish(cmd_vel_stamped);
-	} else {
-		cmd_pub_.publish(cmd_vel);
-	}
+	cmd_pub_->publish(cmd_vel);
+	// since the jaus message does not have time stamp, we use current time
+	auto cmd_vel_stamped = geometry_msgs::msg::TwistStamped();
+	cmd_vel_stamped.header.stamp = cmp->now();
+	cmd_vel_stamped.twist = cmd_vel;
+	cmd_stamped_pub_->publish(cmd_vel_stamped);
 	pAccessControl_ReceiveFSM->resetTimerAction();
 }
 
 void PrimitiveDriver_ReceiveFSM::stopMotionAction()
 {
 	/// Insert User Code HERE
-	geometry_msgs::Twist cmd_vel;
+	auto cmd_vel = geometry_msgs::msg::Twist();
 	cmd_vel.linear.x = 0;
 	cmd_vel.linear.y = 0;
 	cmd_vel.linear.z = 0;
 	cmd_vel.angular.x = 0;
 	cmd_vel.angular.y = 0;
 	cmd_vel.angular.z = 0;
-	if (p_use_stamped) {
-		// since the jaus message does not have time stamp, we use current time
-		geometry_msgs::TwistStamped cmd_vel_stamped;
-		cmd_vel_stamped.header.stamp = ros::Time::now();
-		cmd_vel_stamped.twist = cmd_vel;
-		cmd_pub_.publish(cmd_vel_stamped);
-	} else {
-		cmd_pub_.publish(cmd_vel);
-	}
+	cmd_pub_->publish(cmd_vel);
+
+	// since the jaus message does not have time stamp, we use current time
+	auto cmd_vel_stamped = geometry_msgs::msg::TwistStamped();
+	cmd_vel_stamped.header.stamp = cmp->now();
+	cmd_vel_stamped.twist = cmd_vel;
+	cmd_stamped_pub_->publish(cmd_vel_stamped);
 }
 
 bool PrimitiveDriver_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
@@ -189,9 +209,9 @@ bool PrimitiveDriver_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec t
 	return pAccessControl_ReceiveFSM->isControllingClient(transportData );
 }
 
-void PrimitiveDriver_ReceiveFSM::odomReceived(const nav_msgs::Odometry::ConstPtr& odom)
+void PrimitiveDriver_ReceiveFSM::odomReceived(const nav_msgs::msg::Odometry::SharedPtr odom)
 {
 	//TODO: store odometry for odometry service
 }
 
-};
+}

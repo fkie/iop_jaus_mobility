@@ -1,23 +1,25 @@
 <?xml version="1.0"?>
-<package format="2">
-	<name>fkie_iop_velocity_state_sensor</name>
-	<version>1.0.0</version>
-	<description>Translation of the velocity state sensor service functionality to/from ROS</description>
+<package format="3">
+  <name>fkie_iop_velocity_state_sensor</name>
+  <version>1.0.0</version>
+  <description>Translation of the velocity state sensor service functionality to/from ROS</description>
 
-	<author>Shivesh Khaitan</author>
-	<author>Sarthak Mittal</author>
-	<maintainer email="shiveshkhaitan@gmail.com">Shivesh Khaitan</maintainer>
-	<maintainer email="sarthakmittal2608@gmail.com">Sarthak Mittal</maintainer>
-	<license>GPLv2</license>
-	<url type="website">https://github.com/fkie/iop_jaus_mobility</url>
+  <author>Shivesh Khaitan</author>
+  <author>Sarthak Mittal</author>
+  <maintainer email="shiveshkhaitan@gmail.com">Shivesh Khaitan</maintainer>
+  <maintainer email="sarthakmittal2608@gmail.com">Sarthak Mittal</maintainer>
+  <license>GPLv2</license>
+  <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
 
-	<buildtool_depend>catkin</buildtool_depend>
-	<depend>fkie_iop_component</depend>
-	<depend>fkie_iop_management</depend>
-	<depend>nav_msgs</depend>
-	<depend>roscpp</depend>
+  <depend>fkie_iop_management</depend>
+  <depend>geometry_msgs</depend>
+  <depend>nav_msgs</depend>
 
-	<export>
-		<fkie_iop_component plugin="${prefix}/plugin_iop.xml" />
-	</export>
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+
 </package>

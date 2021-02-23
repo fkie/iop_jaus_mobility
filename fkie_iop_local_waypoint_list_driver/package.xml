@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>fkie_iop_local_waypoint_list_driver</name>
   <version>1.0.0</version>
   <description>Service to move the platform to specified list of waypoint.</description>
@@ -9,16 +9,16 @@
   <license>GPLv2</license>
   <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>fkie_iop_component</depend>
   <depend>fkie_iop_list_manager</depend>
+  <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
-  <depend>roscpp</depend>
-  <depend>std_msgs</depend>
-  <depend>tf</depend>
+  <depend>tf2</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <fkie_iop_component plugin="${prefix}/plugin_iop.xml" />
+    <build_type>ament_cmake</build_type>
   </export>
 
 </package>

@@ -1,10 +1,11 @@
 
 
 #include "urn_jaus_jss_mobility_GlobalWaypointListDriver/GlobalWaypointListDriver_ReceiveFSM.h"
-
-#include <gps_common/conversions.h>
-#include <tf/transform_datatypes.h>
-#include <fkie_iop_component/iop_component.h>
+#include <fkie_iop_component/iop_config.hpp>
+#include <fkie_iop_component/gps_conversions.h>
+#include <tf2/convert.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 
 
@@ -15,7 +16,8 @@ namespace urn_jaus_jss_mobility_GlobalWaypointListDriver
 
 
 
-GlobalWaypointListDriver_ReceiveFSM::GlobalWaypointListDriver_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_ListManager::ListManager_ReceiveFSM* pListManager_ReceiveFSM)
+GlobalWaypointListDriver_ReceiveFSM::GlobalWaypointListDriver_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_ListManager::ListManager_ReceiveFSM* pListManager_ReceiveFSM, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM)
+: logger(cmp->get_logger().get_child("GlobalWaypointListDriver"))
 {
 
 	/*
@@ -25,11 +27,12 @@ GlobalWaypointListDriver_ReceiveFSM::GlobalWaypointListDriver_ReceiveFSM(urn_jau
 	 */
 	context = new GlobalWaypointListDriver_ReceiveFSMContext(*this);
 
-	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
-	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
-	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
-	this->pManagement_ReceiveFSM = pManagement_ReceiveFSM;
 	this->pListManager_ReceiveFSM = pListManager_ReceiveFSM;
+	this->pManagement_ReceiveFSM = pManagement_ReceiveFSM;
+	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
+	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
+	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
+	this->cmp = cmp;
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
 	p_tf_frame_world = "/world";
@@ -72,7 +75,20 @@ void GlobalWaypointListDriver_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready_Controlled", pListManager_ReceiveFSM->getHandler(), "InternalStateChange_To_ListManager_ReceiveFSM_Receiving_Ready_Controlled", "GlobalWaypointListDriver_ReceiveFSM");
 	registerNotification("Receiving_Ready", pListManager_ReceiveFSM->getHandler(), "InternalStateChange_To_ListManager_ReceiveFSM_Receiving_Ready", "GlobalWaypointListDriver_ReceiveFSM");
 	registerNotification("Receiving", pListManager_ReceiveFSM->getHandler(), "InternalStateChange_To_ListManager_ReceiveFSM_Receiving", "GlobalWaypointListDriver_ReceiveFSM");
-	iop::Config cfg("~GlobalWaypointListDriver");
+}
+
+
+void GlobalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
+{
+	iop::Config cfg(cmp, "GlobalWaypointListDriver");
+	cfg.declare_param<std::string>("tf_frame_world", p_tf_frame_world, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
+		"TF frame used in ROS for global coordinates. This value is set in each command message.",
+		"Default: '/world'");
+	cfg.declare_param<double>("tv_max", p_tv_max, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum allowed speed.",
+		"Default: 1.0");
 	cfg.param("tf_frame_world", p_tf_frame_world, p_tf_frame_world);
 	cfg.param("tv_max", p_tv_max, p_tv_max);
 
@@ -81,12 +97,12 @@ void GlobalWaypointListDriver_ReceiveFSM::setupNotifications()
 	pListManager_ReceiveFSM->list_manager().register_supported_element(SetGlobalWaypoint::ID, this);
 	//create ROS subscriber
 	p_travel_speed = 0.0;
-	p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoints", 5);
-	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_travel_speed", 5);
-	p_sub_finished = cfg.subscribe<std_msgs::Bool>("global_way_points_finished", 5, &GlobalWaypointListDriver_ReceiveFSM::pRosFinished, this);
-	std_msgs::Float32 ros_msg;
+	p_pub_path = cfg.create_publisher<nav_msgs::msg::Path>("cmd_global_waypoints", 5);
+	p_pub_tv_max = cfg.create_publisher<std_msgs::msg::Float32>("cmd_travel_speed", 5);
+	p_sub_finished = cfg.create_subscription<std_msgs::msg::Bool>("global_way_points_finished", 5, std::bind(&GlobalWaypointListDriver_ReceiveFSM::pRosFinished, this, std::placeholders::_1));
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 }
 
 void GlobalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList msg, Receive::Body::ReceiveRec transportData)
@@ -94,9 +110,9 @@ void GlobalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList 
 	JausAddress sender = transportData.getAddress();
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
 	jUnsignedShortInteger start_iud = msg.getBody()->getExecuteListRec()->getElementUID();
-	ROS_DEBUG_NAMED("GlobalWaypointListDriver", "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
+	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
 	if (!pListManager_ReceiveFSM->list_manager().execute_list(start_iud, speed)) {
-		ROS_WARN_NAMED("ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
+		RCLCPP_WARN(logger, "ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
 		RejectElementRequest reject;
 		reject.getBody()->getRejectElementRec()->setRequestID(0);
 		reject.getBody()->getRejectElementRec()->setResponseCode(pListManager_ReceiveFSM->list_manager().get_error_code());
@@ -107,31 +123,31 @@ void GlobalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList 
 void GlobalWaypointListDriver_ReceiveFSM::modifyTravelSpeedAction(ExecuteList msg)
 {
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
-	ROS_DEBUG_NAMED("GlobalWaypointListDriver", "modify travel speed to %.2f", speed);
+	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "modify travel speed to %.2f", speed);
 	p_travel_speed = speed;
 	if (p_travel_speed > p_tv_max) {
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "  reset travel speed to max %.2f", p_tv_max);
+		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "  reset travel speed to max %.2f", p_tv_max);
 		p_travel_speed = p_tv_max;
 	}
-	std_msgs::Float32 ros_msg;
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 }
 
 void GlobalWaypointListDriver_ReceiveFSM::resetTravelSpeedAction()
 {
-	ROS_DEBUG_NAMED("GlobalWaypointListDriver", "reset travel speed to default: %.2f", 0.0);
+	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "reset travel speed to default: %.2f", 0.0);
 	p_travel_speed = 0.0;
-	std_msgs::Float32 ros_msg;
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 }
 
 void GlobalWaypointListDriver_ReceiveFSM::sendReportActiveElementAction(QueryActiveElement msg, Receive::Body::ReceiveRec transportData)
 {
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
-	ROS_DEBUG_NAMED("GlobalWaypointListDriver", "report active element %d to %s", cuid, requester.str().c_str());
+	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "report active element %d to %s", cuid, requester.str().c_str());
 	ReportActiveElement reply;
 	reply.getBody()->getActiveElementRec()->setElementUID(cuid);
 	sendJausMessage(reply, requester);
@@ -142,12 +158,12 @@ void GlobalWaypointListDriver_ReceiveFSM::sendReportGlobalWaypointAction(QueryGl
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "report current global point (uid: %d) to %s", cuid, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "report current global point (uid: %d) to %s", cuid, requester.str().c_str());
 		iop::InternalElement el = pListManager_ReceiveFSM->list_manager().get_element(cuid);
 		if (el.get_uid() != 0) {
 			ReportGlobalWaypoint reply;
 			reply.decode(el.get_report().getBody()->getElementRec()->getElementData()->getData());
-			ROS_DEBUG_NAMED("GlobalWaypointListDriver", "  global waypoint: lat %.2f, lon %.2f",
+			RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "  global waypoint: lat %.2f, lon %.2f",
 					reply.getBody()->getGlobalWaypointRec()->getLatitude(), reply.getBody()->getGlobalWaypointRec()->getLongitude());
 			sendJausMessage(reply, requester);
 		}
@@ -161,7 +177,7 @@ void GlobalWaypointListDriver_ReceiveFSM::sendReportTravelSpeedAction(QueryTrave
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
 		JausAddress requester = transportData.getAddress();
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
 		ReportTravelSpeed reply;
 		reply.getBody()->getTravelSpeedRec()->setSpeed(p_travel_speed);
 		sendJausMessage(reply, requester);
@@ -202,12 +218,12 @@ void GlobalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::Internal
 		if (p_travel_speed > p_tv_max) {
 			p_travel_speed = p_tv_max;
 		}
-		std_msgs::Float32 ros_msg;
+		auto ros_msg = std_msgs::msg::Float32();
 		ros_msg.data = p_travel_speed;
-		p_pub_tv_max.publish(ros_msg);
+		p_pub_tv_max->publish(ros_msg);
 	}
-	nav_msgs::Path path;
-	path.header.stamp = ros::Time::now();
+	auto path = nav_msgs::msg::Path();
+	path.header.stamp = cmp->now();
 	path.header.frame_id = p_tf_frame_world;
 	std::vector<iop::InternalElement>::iterator it;
 	if (elements.size() == 0) {
@@ -223,7 +239,7 @@ void GlobalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::Internal
 		p_executing = true;
 	}
 	for (it = elements.begin(); it != elements.end(); ++it) {
-		geometry_msgs::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
+		geometry_msgs::msg::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
 		if (it == elements.begin()) {
 			pListManager_ReceiveFSM->list_manager().set_current_element(it->get_uid());
 			p_current_element.getBody()->getActiveElementRec()->setElementUID(it->get_uid());
@@ -234,15 +250,15 @@ void GlobalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::Internal
 		path.poses.push_back(pose);
 		p_last_uid = it->get_uid();
 	}
-	p_pub_path.publish(path);
+	p_pub_path->publish(path);
 }
 
 void GlobalWaypointListDriver_ReceiveFSM::stop_execution()
 {
 	if (p_executing) {
-		nav_msgs::Path path;
-		path.header.stamp = ros::Time::now();
-		p_pub_path.publish(path);
+		auto path = nav_msgs::msg::Path();
+		path.header.stamp = cmp->now();
+		p_pub_path->publish(path);
 		ReportGlobalWaypoint waypoint;
 		p_current_waypoint = waypoint;
 		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
@@ -255,24 +271,24 @@ void GlobalWaypointListDriver_ReceiveFSM::stop_execution()
 	}
 }
 
-void GlobalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::Bool::ConstPtr& state)
+void GlobalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool::SharedPtr state)
 {
 	if (state->data && p_last_uid != 0) {
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "execution finished");
+		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "execution finished");
 		bool finished = pListManager_ReceiveFSM->list_manager().finished(p_last_uid);
 		if (finished) {
-			ROS_DEBUG_NAMED("GlobalWaypointListDriver", "  there are futher elements available, execute!");
+			RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "  there are futher elements available, execute!");
 		} else {
 			stop_execution();
 		}
 	}
 }
 
-geometry_msgs::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_waypoint(iop::InternalElement& element, bool update_current)
+geometry_msgs::msg::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_waypoint(iop::InternalElement& element, bool update_current)
 {
 	SetGlobalWaypoint wp;
 	wp.decode(element.get_report().getBody()->getElementRec()->getElementData()->getData());
-	geometry_msgs::PoseStamped result;
+	auto result = geometry_msgs::msg::PoseStamped();
 	double lat, lon, alt = 0.0;
 	double roll, pitch, yaw = 0.0;
 	SetGlobalWaypoint::Body::GlobalWaypointRec *wprec = wp.getBody()->getGlobalWaypointRec();
@@ -313,10 +329,11 @@ geometry_msgs::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_wa
 	double northing, easting;
 	std::string zone;
 	gps_common::LLtoUTM(lat, lon, northing, easting, zone);
-	tf::Quaternion quat = tf::createQuaternionFromRPY(roll, pitch, yaw);
+	tf2::Quaternion quat;
+	quat.setRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
 		result.pose.position.x = easting;
 		result.pose.position.y = northing;
 		result.pose.position.z = alt;
@@ -328,4 +345,4 @@ geometry_msgs::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_wa
 	return result;
 }
 
-};
+}

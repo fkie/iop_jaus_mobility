@@ -7,7 +7,7 @@ Forwards a local waypoint command to ROS.
 
 #### Parameter:
 
-_tf_frame_robot (str_, Default: "base_llink")
+_tf_frame_robot (str_, Default: "base_link")
 
 > TF frame used in ROS for local coordinates. This value is set in each command message.
 

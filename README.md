@@ -8,11 +8,7 @@ This repository is part of [ROS/IOP Bridge](https://github.com/fkie/iop_core/blo
 [fkie_iop_global_waypoint_driver: GlobalWaypointDriver](fkie_iop_global_waypoint_driver/README.md)  
 [fkie_iop_global_waypoint_list_driver: GlobalWaypointListDriver](fkie_iop_global_waypoint_list_driver/README.md)  
 [fkie_iop_local_pose_sensor: LocalPoseSensor](fkie_iop_local_pose_sensor/README.md)  
+[fkie_iop_local_waypoint_driver: LocalWaypointDriver](fkie_iop_local_waypoint_driver/README.md)  
+[fkie_iop_local_waypoint_list_driver: LocalWaypointListDriver](fkie_iop_local_waypoint_list_driver/README.md)  
 [fkie_iop_primitive_driver: PrimitiveDriver](fkie_iop_primitive_driver/README.md)
-
-
-
-
-
-
 

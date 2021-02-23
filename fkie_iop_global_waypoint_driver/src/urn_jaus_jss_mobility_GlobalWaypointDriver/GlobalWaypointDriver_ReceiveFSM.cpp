@@ -1,10 +1,11 @@
 
 
 #include "urn_jaus_jss_mobility_GlobalWaypointDriver/GlobalWaypointDriver_ReceiveFSM.h"
-
-#include <gps_common/conversions.h>
-#include <tf/transform_datatypes.h>
-#include <fkie_iop_component/iop_component.h>
+#include <fkie_iop_component/iop_config.hpp>
+#include <fkie_iop_component/gps_conversions.h>
+#include <tf2/convert.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 using namespace JTS;
 
@@ -13,9 +14,9 @@ namespace urn_jaus_jss_mobility_GlobalWaypointDriver
 
 
 
-GlobalWaypointDriver_ReceiveFSM::GlobalWaypointDriver_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM)
+GlobalWaypointDriver_ReceiveFSM::GlobalWaypointDriver_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM)
+: logger(cmp->get_logger().get_child("GlobalWaypointDriver"))
 {
-
 	/*
 	 * If there are other variables, context must be constructed last so that all
 	 * class variables are available if an EntryAction of the InitialState of the
@@ -23,10 +24,11 @@ GlobalWaypointDriver_ReceiveFSM::GlobalWaypointDriver_ReceiveFSM(urn_jaus_jss_co
 	 */
 	context = new GlobalWaypointDriver_ReceiveFSMContext(*this);
 
-	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
-	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
-	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
 	this->pManagement_ReceiveFSM = pManagement_ReceiveFSM;
+	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
+	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
+	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
+	this->cmp = cmp;
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
 	p_tf_frame_world = "/world";
@@ -68,7 +70,20 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving_Ready", "GlobalWaypointDriver_ReceiveFSM");
 	registerNotification("Receiving", pManagement_ReceiveFSM->getHandler(), "InternalStateChange_To_Management_ReceiveFSM_Receiving", "GlobalWaypointDriver_ReceiveFSM");
 
-	iop::Config cfg("~GlobalWaypointDriver");
+}
+
+
+void GlobalWaypointDriver_ReceiveFSM::setupIopConfiguration()
+{
+	iop::Config cfg(cmp, "GlobalWaypointDriver");
+	cfg.declare_param<std::string>("tf_frame_world", p_tf_frame_world, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
+		"TF frame used in ROS for global coordinates. This value is set in each command message.",
+		"Default: '/world'");
+	cfg.declare_param<double>("tv_max", p_tv_max, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
+		"The maximum allowed speed.",
+		"Default: 1.0");
 	cfg.param("tf_frame_world", p_tf_frame_world, p_tf_frame_world);
 	cfg.param("tv_max", p_tv_max, p_tv_max);
 
@@ -76,22 +91,22 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	//create ROS subscriber
 	p_travel_speed = 0.0;
 	// p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoint", 5);
-	p_pub_pose = cfg.advertise<geometry_msgs::PoseStamped>("cmd_global_pose", 5);
-	p_pub_fix = cfg.advertise<sensor_msgs::NavSatFix>("cmd_fix", 5);
-	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_travel_speed", 5, true);
-	p_sub_finished = cfg.subscribe<std_msgs::Bool>("global_way_point_reached", 5, &GlobalWaypointDriver_ReceiveFSM::pRosFinished, this);
-	std_msgs::Float32 ros_msg;
+	p_pub_pose = cfg.create_publisher<geometry_msgs::msg::PoseStamped>("cmd_global_pose", 5);
+	p_pub_fix = cfg.create_publisher<sensor_msgs::msg::NavSatFix>("cmd_fix", 5);
+	p_pub_tv_max = cfg.create_publisher<std_msgs::msg::Float32>("cmd_travel_speed", 5);
+	p_sub_finished = cfg.create_subscription<std_msgs::msg::Bool>("global_way_point_reached", 5, std::bind(&GlobalWaypointDriver_ReceiveFSM::pRosFinished, this, std::placeholders::_1));
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 }
 
 void GlobalWaypointDriver_ReceiveFSM::resetTravelSpeedAction()
 {
 	// The travel speed is reset to zero for all transitions from the Ready State.
 	p_travel_speed = 0.0;
-	std_msgs::Float32 ros_msg;
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 //	pStop();
 }
 
@@ -101,7 +116,7 @@ void GlobalWaypointDriver_ReceiveFSM::sendReportGlobalWaypointAction(QueryGlobal
 	uint8_t node_id = transportData.getSourceID()->getNodeID();
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
-	ROS_DEBUG_NAMED("GlobalWaypointDriver", "sendReportGlobalWaypointAction to %d.%d.%d", subsystem_id, node_id, component_id);
+	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "sendReportGlobalWaypointAction to %d.%d.%d", subsystem_id, node_id, component_id);
 	sendJausMessage(p_current_waypoint, sender);
 }
 
@@ -111,7 +126,7 @@ void GlobalWaypointDriver_ReceiveFSM::sendReportTravelSpeedAction(QueryTravelSpe
 	uint8_t node_id = transportData.getSourceID()->getNodeID();
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
-	ROS_DEBUG_NAMED("GlobalWaypointDriver", "sendReportTravelSpeedAction to %d.%d.%d", subsystem_id, node_id, component_id);
+	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "sendReportTravelSpeedAction to %d.%d.%d", subsystem_id, node_id, component_id);
 	ReportTravelSpeed report;
 	report.getBody()->getTravelSpeedRec()->setSpeed(p_travel_speed);
 	sendJausMessage(report, sender);
@@ -124,14 +139,14 @@ void GlobalWaypointDriver_ReceiveFSM::setTravelSpeedAction(SetTravelSpeed msg, R
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
 	p_travel_speed = msg.getBody()->getTravelSpeedRec()->getSpeed();
-	ROS_DEBUG_NAMED("GlobalWaypointDriver", "setTravelSpeedAction from %d.%d.%d to %.2f", subsystem_id, node_id, component_id, p_travel_speed);
+	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "setTravelSpeedAction from %d.%d.%d to %.2f", subsystem_id, node_id, component_id, p_travel_speed);
 	if (p_tv_max < p_travel_speed) {
 		p_travel_speed = p_tv_max;
-		ROS_DEBUG_NAMED("GlobalWaypointDriver", "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
+		RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
 	}
-	std_msgs::Float32 ros_msg;
+	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
-	p_pub_tv_max.publish(ros_msg);
+	p_pub_tv_max->publish(ros_msg);
 	if (p_travel_speed == 0.0) {
 		pStop();
 	}
@@ -143,7 +158,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	uint8_t node_id = transportData.getSourceID()->getNodeID();
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
-	ROS_DEBUG_NAMED("GlobalWaypointDriver", "setWaypointAction from %d.%d.%d", subsystem_id, node_id, component_id);
+	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "setWaypointAction from %d.%d.%d", subsystem_id, node_id, component_id);
 	double lat, lon, alt = 0.0;
 	double roll, pitch, yaw = 0.0;
 	SetGlobalWaypoint::Body::GlobalWaypointRec *wprec = msg.getBody()->getGlobalWaypointRec();
@@ -170,18 +185,19 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	if (wprec->isWaypointToleranceValid()) {
 		p_current_waypoint.getBody()->getGlobalWaypointRec()->setWaypointTolerance(wprec->getWaypointTolerance());
 	}
-	nav_msgs::Path path;
-	path.header.stamp = ros::Time::now();
+	auto path = nav_msgs::msg::Path();
+	path.header.stamp = cmp->now();
 	path.header.frame_id = this->p_tf_frame_world;
 
 	double northing, easting;
 	std::string zone;
 	gps_common::LLtoUTM(lat, lon, northing, easting, zone);
-	tf::Quaternion quat = tf::createQuaternionFromRPY(roll, pitch, yaw);
+	tf2::Quaternion quat;
+	quat.setRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		ROS_INFO_NAMED("GlobalWaypointDriver", "new Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
-		geometry_msgs::PoseStamped pose;
+		RCLCPP_INFO(logger, "GlobalWaypointDriver", "new Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		auto pose = geometry_msgs::msg::PoseStamped();
 		pose.header = path.header;
 		pose.pose.position.x = easting;
 		pose.pose.position.y = northing;
@@ -190,37 +206,38 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 		pose.pose.orientation.y = quat.y();
 		pose.pose.orientation.z = quat.z();
 		pose.pose.orientation.w = quat.w();
+
 		path.poses.push_back(pose);
-		p_pub_pose.publish(pose);
-		sensor_msgs::NavSatFix nav_goal;
+		p_pub_pose->publish(pose);
+		auto nav_goal = sensor_msgs::msg::NavSatFix();
 		nav_goal.status.status = 1;
 		nav_goal.header = path.header;
 		nav_goal.latitude = lat;
 		nav_goal.longitude = lon;
 		nav_goal.altitude = alt;
-		p_pub_fix.publish(nav_goal);
+		p_pub_fix->publish(nav_goal);
 	}
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
-//	this->p_pub_path.publish(path);
+//	this->p_pub_path->publish(path);
 }
 
 void GlobalWaypointDriver_ReceiveFSM::pStop()
 {
-	nav_msgs::Path path;
-	path.header.stamp = ros::Time::now();
+	auto path = nav_msgs::msg::Path();
+	path.header.stamp = cmp->now();
 	path.header.frame_id = this->p_tf_frame_world;
 	ReportGlobalWaypoint waypoint;
 	p_current_waypoint = waypoint;
 	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
 	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
-//	this->p_pub_path.publish(path);
+//	this->p_pub_path->publish(path);
 }
 
-void GlobalWaypointDriver_ReceiveFSM::pRosFinished(const std_msgs::Bool::ConstPtr& state)
+void GlobalWaypointDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool::SharedPtr state)
 {
 	if (state->data) {
-		ROS_DEBUG_NAMED("GlobalWaypointDriver", "global waypoint reached");
+		RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "global waypoint reached");
 		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
 		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
 		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
@@ -250,5 +267,5 @@ bool GlobalWaypointDriver_ReceiveFSM::waypointExists(SetTravelSpeed msg)
 
 
 
-};
+}
 

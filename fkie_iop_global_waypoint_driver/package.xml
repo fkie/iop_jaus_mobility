@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>fkie_iop_global_waypoint_driver</name>
   <version>1.1.0</version>
   <description>Service to move the platform given a single target waypoint.</description>
@@ -9,19 +9,18 @@
   <license>GPLv2</license>
   <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <depend>geometry_msgs</depend>
-  <depend>gps_common</depend>
-  <depend>fkie_iop_component</depend>
   <depend>fkie_iop_management</depend>
+  <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
-  <depend>roscpp</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
-  <depend>tf</depend>
+  <depend>tf2</depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
 
   <export>
-    <fkie_iop_component plugin="${prefix}/plugin_iop.xml" />
+    <build_type>ament_cmake</build_type>
   </export>
 
 </package>

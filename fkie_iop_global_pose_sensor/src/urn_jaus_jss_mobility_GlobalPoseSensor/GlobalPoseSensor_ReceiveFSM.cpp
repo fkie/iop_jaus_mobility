@@ -21,11 +21,11 @@ along with this program; or you can read the full license at
 /** \author Alexander Tiderko */
 
 #include "urn_jaus_jss_mobility_GlobalPoseSensor/GlobalPoseSensor_ReceiveFSM.h"
+#include <fkie_iop_component/iop_config.hpp>
 #include <cmath>
-#include <tf/transform_datatypes.h>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 #include <ctime>
-#include <fkie_iop_builder/timestamp.h>
-#include <fkie_iop_component/iop_config.h>
 
 
 using namespace JTS;
@@ -35,7 +35,8 @@ namespace urn_jaus_jss_mobility_GlobalPoseSensor
 
 
 
-GlobalPoseSensor_ReceiveFSM::GlobalPoseSensor_ReceiveFSM(urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM)
+GlobalPoseSensor_ReceiveFSM::GlobalPoseSensor_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM)
+: logger(cmp->get_logger().get_child("GlobalPoseSensor"))
 {
 
 	/*
@@ -45,9 +46,10 @@ GlobalPoseSensor_ReceiveFSM::GlobalPoseSensor_ReceiveFSM(urn_jaus_jss_core_Trans
 	 */
 	context = new GlobalPoseSensor_ReceiveFSMContext(*this);
 
-	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
-	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
 	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
+	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
+	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
+	this->cmp = cmp;
 	this->p_is_ori_valid = false;
 	p_yaw = NAN;
 	p_pitch = NAN;
@@ -71,16 +73,21 @@ void GlobalPoseSensor_ReceiveFSM::setupNotifications()
 	registerNotification("Receiving_Ready_Controlled", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_Controlled", "GlobalPoseSensor_ReceiveFSM");
 	registerNotification("Receiving_Ready", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready", "GlobalPoseSensor_ReceiveFSM");
 	registerNotification("Receiving", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving", "GlobalPoseSensor_ReceiveFSM");
-	iop::Config cfg("~GlobalPoseSensor");
-	p_navsatfix_sub = cfg.subscribe<sensor_msgs::NavSatFix>("fix", 1, &GlobalPoseSensor_ReceiveFSM::fixReceived, this);
-	p_imu_sub = cfg.subscribe<sensor_msgs::Imu>("imu", 1, &GlobalPoseSensor_ReceiveFSM::imuReceived, this);
+}
+
+
+void GlobalPoseSensor_ReceiveFSM::setupIopConfiguration()
+{
+	iop::Config cfg(cmp, "GlobalPoseSensor");
+	p_navsatfix_sub = cfg.create_subscription<sensor_msgs::msg::NavSatFix>("fix", 1, std::bind(&GlobalPoseSensor_ReceiveFSM::fixReceived, this, std::placeholders::_1));
+	p_imu_sub = cfg.create_subscription<sensor_msgs::msg::Imu>("imu", 1, std::bind(&GlobalPoseSensor_ReceiveFSM::imuReceived, this, std::placeholders::_1));
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalPose::ID);
 }
 
 void GlobalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
 {
 	/// Insert User Code HERE
-	ROS_DEBUG("request %s from %d.%d.%d", arg0.c_str(),
+	RCLCPP_DEBUG(logger, "request %s from %d.%d.%d", arg0.c_str(),
 			  transportData.getSrcSubsystemID(), transportData.getSrcNodeID(), transportData.getSrcComponentID());
 	JausAddress sender = JausAddress(transportData.getSrcSubsystemID(),
 									 transportData.getSrcNodeID(),
@@ -110,7 +117,7 @@ bool GlobalPoseSensor_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec 
 	return pAccessControl_ReceiveFSM->isControllingClient(transportData );
 }
 
-void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::NavSatFix::ConstPtr& fix)
+void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::msg::NavSatFix::SharedPtr fix)
 {
 	if (fix->status.status != -1) {
 		p_report_global_pose.getBody()->getGlobalPoseRec()->setLatitude(fix->latitude);
@@ -124,7 +131,7 @@ void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::NavSatFix::Cons
 		// set timestamp
 		ReportGlobalPose::Body::GlobalPoseRec::TimeStamp ts;
 		// current date/time based on current system
-		iop::Timestamp stamp(fix->header.stamp);
+		iop::Timestamp stamp = cmp->from_ros(fix->header.stamp);
 		ts.setDay(stamp.days);
 		ts.setHour(stamp.hours);
 		ts.setMinutes(stamp.minutes);
@@ -135,16 +142,16 @@ void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::NavSatFix::Cons
 	}
 }
 
-void GlobalPoseSensor_ReceiveFSM::imuReceived(const sensor_msgs::Imu::ConstPtr& imu)
+void GlobalPoseSensor_ReceiveFSM::imuReceived(const sensor_msgs::msg::Imu::SharedPtr imu)
 {
 	try {
-		tf::Quaternion q(imu->orientation.x, imu->orientation.y, imu->orientation.z, imu->orientation.w);
-		tf::Matrix3x3 m(q);
+		tf2::Quaternion q(imu->orientation.x, imu->orientation.y, imu->orientation.z, imu->orientation.w);
+		tf2::Matrix3x3 m(q);
 		m.getRPY(p_roll, p_pitch, p_yaw);
 		p_is_ori_valid = true;
 	} catch (const std::exception& e) {
-		ROS_WARN("Error while get yaw, pitch, roll from quaternion: %s", e.what());
+		RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 	}
 }
 
-};
+}

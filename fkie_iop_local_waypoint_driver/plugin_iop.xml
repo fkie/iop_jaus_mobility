@@ -1,10 +1,5 @@
-<library path="libfkie_iop_local_waypoint_driver">
-  <class name="LocalWaypointDriver" type="iop::LocalWaypointDriverPlugin" base_class_type="iop::PluginInterface">
-    <description>
-      LocalWaypointDriver Service Plugin
-    </description>
-    <iop_service name="LocalWaypointDriver" id="urn:jaus:jss:mobility:LocalWaypointDriver" version="1.0">
-      <inherits_from id="urn:jaus:jss:core:Management" min_version="1.0"/>
-    </iop_service>
-  </class>
+<library path="fkie_iop_local_waypoint_driver">
+	<class name="LocalWaypointDriver" type="urn_jaus_jss_mobility_LocalWaypointDriver::LocalWaypointDriverService" base_class_type="JTS::Service"
+		id="urn:jaus:jss:mobility:LocalWaypointDriver" version="1.0">
+	</class>
 </library>
