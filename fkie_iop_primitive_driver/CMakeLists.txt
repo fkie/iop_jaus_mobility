@@ -84,6 +84,11 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
+install(
+   DIRECTORY launch
+   DESTINATION share/${PROJECT_NAME}
+)
+
 ament_export_include_directories(include ${IOP_COMPONENT_INCLUDE_DIRS})
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(${dependencies})

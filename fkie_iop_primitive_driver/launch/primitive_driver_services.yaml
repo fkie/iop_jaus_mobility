@@ -1,0 +1,21 @@
+iop_primitive_driver:
+  ros__parameters:
+    iop_services:
+      - fkie_iop_discovery/Discovery
+      - fkie_iop_platform_mode/PlatformMode
+      - fkie_iop_platform_state/PlatformState
+      - fkie_iop_primitive_driver/PrimitiveDriver
+    Events.timeout: 5
+    Discovery:
+      # 0: Reserved, 1: System Identification, 2: Subsystem Identification, 3: Node Identification, 4: Component Identification, 5 – 255: Reserved
+      system_id: 2
+      # 10001: VEHICLE, 20001: OCU, 30001: OTHER_SUBSYSTEM, 40001: NODE, 50001: PAYLOAD, 60001: COMPONENT
+      system_type: 10001
+      name_subsystem: TestPD
+      name_node: PrimitiveDriver
+      platform_mode: 0
+    PlatformState:
+      # 0: initialize, 1: operational, 2: shutdown, 3: system_abort, 4: emergency, 5: render_useless
+      init_platform_state: 1
+    PrimitiveDriver:
+      max_linear_x: 3.5
