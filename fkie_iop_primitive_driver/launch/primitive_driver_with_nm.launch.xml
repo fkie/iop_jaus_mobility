@@ -1,7 +1,7 @@
 <launch>
     <arg name="id_subsystem" default="127"/>
     <arg name="id_node" default="64"/>
-    <node name="iop_node_manager" pkg="fkie_iop_node_manager" type="rosiopnodemanager.py" />
+    <node name="iop_node_manager" pkg="fkie_iop_node_manager" exec="rosiopnodemanager.py" />
     <node name="iop_primitive_driver" pkg="fkie_iop_component" exec="iop_component" _args="--ros-args --log-level debug" output="screen" >
         <param name="iop_address" value="$(var id_subsystem).$(var id_node).200"/>
         <param from="$(find-pkg-share fkie_iop_primitive_driver)/launch/primitive_driver_services.yaml"/>
