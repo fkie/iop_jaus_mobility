@@ -23,7 +23,7 @@ along with this program; or you can read the full license at
 
 #include "urn_jaus_jss_mobility_PrimitiveDriver/PrimitiveDriver_ReceiveFSM.h"
 #include <fkie_iop_component/iop_config.hpp>
-
+#include <fkie_iop_builder/util.h>
 
 
 using namespace JTS;
@@ -150,28 +150,46 @@ void PrimitiveDriver_ReceiveFSM::setWrenchEffortAction(SetWrenchEffort msg, Rece
 	ReportWrenchEffort::Body::WrenchEffortRec new_wrench_effort;
 	auto cmd_vel = geometry_msgs::msg::Twist();
 	if (we->isPropulsiveLinearEffortXValid()) {
-		cmd_vel.linear.x = we->getPropulsiveLinearEffortX() / 100.0 * max_linear_x ;
+		cmd_vel.linear.x = pround(we->getPropulsiveLinearEffortX() / 100.0 * max_linear_x);
 		new_wrench_effort.setPropulsiveLinearEffortX(we->getPropulsiveLinearEffortX());
+	} else {
+		cmd_vel.linear.x = 0;
+		new_wrench_effort.setPropulsiveLinearEffortX(0);
 	}
 	if (we->isPropulsiveLinearEffortYValid()) {
-		cmd_vel.linear.y = we->getPropulsiveLinearEffortY() / 100.0 * max_linear_y;
+		cmd_vel.linear.y = pround(we->getPropulsiveLinearEffortY() / 100.0 * max_linear_y);
 		new_wrench_effort.setPropulsiveLinearEffortY(we->getPropulsiveLinearEffortY());
+	} else {
+		cmd_vel.linear.y = 0;
+		new_wrench_effort.setPropulsiveLinearEffortY(0);
 	}
 	if (we->isPropulsiveLinearEffortZValid()) {
-		cmd_vel.linear.z = we->getPropulsiveLinearEffortZ() / 100.0 * max_linear_z;
+		cmd_vel.linear.z = pround(we->getPropulsiveLinearEffortZ() / 100.0 * max_linear_z);
 		new_wrench_effort.setPropulsiveLinearEffortZ(we->getPropulsiveLinearEffortZ());
+	} else {
+		cmd_vel.linear.z = 0;
+		new_wrench_effort.setPropulsiveLinearEffortZ(0);
 	}
 	if (we->isPropulsiveRotationalEffortXValid()) {
-		cmd_vel.angular.x = we->getPropulsiveRotationalEffortX() / 100.0 * max_angular_x;
+		cmd_vel.angular.x = pround(we->getPropulsiveRotationalEffortX() / 100.0 * max_angular_x);
 		new_wrench_effort.setPropulsiveRotationalEffortX(we->getPropulsiveRotationalEffortX());
+	} else {
+		cmd_vel.angular.x = 0;
+		new_wrench_effort.setPropulsiveRotationalEffortX(0);
 	}
 	if (we->isPropulsiveRotationalEffortYValid()) {
-		cmd_vel.angular.y = we->getPropulsiveRotationalEffortY() / 100.0 * max_angular_y;
+		cmd_vel.angular.y = pround(we->getPropulsiveRotationalEffortY() / 100.0 * max_angular_y);
 		new_wrench_effort.setPropulsiveRotationalEffortY(we->getPropulsiveRotationalEffortY());
+	} else {
+		cmd_vel.angular.y = 0;
+		new_wrench_effort.setPropulsiveRotationalEffortY(0);
 	}
 	if (we->isPropulsiveRotationalEffortZValid()) {
-		cmd_vel.angular.z = we->getPropulsiveRotationalEffortZ() / 100.0 * max_angular_z;
+		cmd_vel.angular.z = pround(we->getPropulsiveRotationalEffortZ() / 100.0 * max_angular_z);
 		new_wrench_effort.setPropulsiveRotationalEffortZ(we->getPropulsiveRotationalEffortZ());
+	} else {
+		cmd_vel.angular.z = 0;
+		new_wrench_effort.setPropulsiveRotationalEffortZ(0);
 	}
 	current_wrench_effort_ = new_wrench_effort;
 	cmd_pub_->publish(cmd_vel);
