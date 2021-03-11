@@ -198,7 +198,6 @@ void PrimitiveDriver_ReceiveFSM::setWrenchEffortAction(SetWrenchEffort msg, Rece
 	cmd_vel_stamped.header.stamp = cmp->now();
 	cmd_vel_stamped.twist = cmd_vel;
 	cmd_stamped_pub_->publish(cmd_vel_stamped);
-	pAccessControl_ReceiveFSM->resetTimerAction();
 }
 
 void PrimitiveDriver_ReceiveFSM::stopMotionAction()
