@@ -18,4 +18,5 @@ iop_primitive_driver:
       # 0: initialize, 1: operational, 2: shutdown, 3: system_abort, 4: emergency, 5: render_useless
       init_platform_state: 1
     PrimitiveDriver:
-      max_linear_x: 3.5
+      max_linear_x: 2.0
+      max_angular_z: -1.5
