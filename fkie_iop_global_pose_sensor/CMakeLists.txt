@@ -18,6 +18,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(fkie_iop_accesscontrol REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(tf2 REQUIRED)
 
 ###############
 ## setup IOP ##
@@ -49,6 +50,7 @@ iop_code_generator(
 set(dependencies
   fkie_iop_accesscontrol
   sensor_msgs
+  tf2
 )
 
 include_directories(
