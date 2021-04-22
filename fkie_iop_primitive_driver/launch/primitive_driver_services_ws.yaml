@@ -5,6 +5,7 @@ iop_primitive_driver:
       - fkie_iop_platform_mode/PlatformMode
       - fkie_iop_platform_state/PlatformState
       - fkie_iop_primitive_driver/PrimitiveDriver
+      - fkie_iop_platform_specification/PlatformSpecificationsService
     Events.timeout: 5
     Discovery:
       # 0: Reserved, 1: System Identification, 2: Subsystem Identification, 3: Node Identification, 4: Component Identification, 5 – 255: Reserved
@@ -20,4 +21,8 @@ iop_primitive_driver:
     PrimitiveDriver:
       max_linear_x: 2.0
       max_angular_z: -1.5
+    PlatformSpecificationsService:
+      spec:
+        mobility_platform_name: Simulator2
+        vehicle_weight: 350.0
 
