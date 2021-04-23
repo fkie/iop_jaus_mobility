@@ -127,7 +127,7 @@ void PrimitiveDriver_ReceiveFSM::setupIopConfiguration()
 	cfg.param("max_angular_x", max_angular_x, max_angular_x, true, "rad");
 	cfg.param("max_angular_y", max_angular_y, max_angular_y, true, "rad");
 	cfg.param("max_angular_z", max_angular_z, max_angular_z, true, "rad");
-//        odom_sub_ = p_nh.subscribe<nav_msgs::Odometry>("odom", 1, &PrimitiveDriver_ReceiveFSM::odomReceived, this);
+//        odom_sub_ = p_nh.create_subscription<nav_msgs::Odometry>("odom", 1, &PrimitiveDriver_ReceiveFSM::odomReceived, this);
 	//create ROS subscriber
 	cmd_stamped_pub_ = cfg.create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_stamped", 5);
 	cmd_pub_ = cfg.create_publisher<geometry_msgs::msg::Twist>("cmd_vel", 5);

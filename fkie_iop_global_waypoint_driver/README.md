@@ -25,13 +25,13 @@ _cmd_fix (sensor_msgs::NavSatFix)_
 
 > Alternative command position without orientation.
 
-_cmd_travel_speed (std_msgs::Float32)_, latched
+_cmd_travel_speed (std_msgs::msg::Float32)_, latched
 
 > The maximum speed configured by parameter or send from OCU. Speed from OCU is always smaller or equal to parameterized value.
 
 #### Subscriber:
 
-_global_way_point_reached (std_msgs::Bool)_
+_global_way_point_reached (std_msgs::msg::Bool)_
 
 > Reports to the client service that the point is reached.
 

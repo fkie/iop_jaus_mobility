@@ -17,17 +17,17 @@ _tv_max (float_ , Default: 1.0)
 
 #### Publisher:
 
-_cmd_local_waypoints (nav_msgs::Path)_
+_cmd_local_waypoints (nav_msgs::msg::Path)_
 
 > The list with local waypoints. It can also be an empty list to abort the execution.
 
-_cmd_travel_speed (std_msgs::Float32)_, latched
+_cmd_travel_speed (std_msgs::msg::Float32)_, latched
 
 > The maximum speed configured by parameter or send from OCU. Speed from OCU is always smaller or equal to parameterized value.
 
 #### Subscriber:
 
-_local_way_points_finished (std_msgs::Bool)_
+_local_way_points_finished (std_msgs::msg::Bool)_
 
 > Reports to the client service that the excution is finished.
 
