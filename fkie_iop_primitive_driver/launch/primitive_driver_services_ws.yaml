@@ -2,6 +2,7 @@ iop_primitive_driver:
   ros__parameters:
     iop_services:
       - fkie_iop_discovery/Discovery
+      - fkie_iop_liveness/Liveness
       - fkie_iop_platform_mode/PlatformMode
       - fkie_iop_platform_state/PlatformState
       - fkie_iop_primitive_driver/PrimitiveDriver
