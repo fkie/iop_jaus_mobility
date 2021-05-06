@@ -79,7 +79,7 @@ void LocalPoseSensor_ReceiveFSM::setupIopConfiguration()
 {
 	iop::Config cfg(cmp, "LocalPoseSensor");
 	int source = 0;
-	cfg.declare_param<uint8_t>("tv_max", source, true,
+	cfg.declare_param<uint8_t>("source_type", source, true,
 		rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER,
 		"Defines the source of local position. 0: tf, 1: geometry_msgs::PoseStamped, 2: nav_msgs::Odometry",
 		"Default: 0");
@@ -182,7 +182,7 @@ void LocalPoseSensor_ReceiveFSM::tfCallback()
 		pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalPose::ID, &p_report_local_pose);
 	} catch (tf2::TransformException& ex){
 		rclcpp::Clock steady_clock(RCL_STEADY_TIME);
-		RCLCPP_WARN_THROTTLE(logger, steady_clock, 1000, "Could not lookup transform from '%s' to '%s': %s", p_tf_frame_robot, p_tf_frame_odom, ex.what());
+		RCLCPP_WARN_THROTTLE(logger, steady_clock, 10000, "Could not lookup transform from '%s' to '%s': %s", p_tf_frame_robot.c_str(), p_tf_frame_odom.c_str(), ex.what());
 	}
 
 }
