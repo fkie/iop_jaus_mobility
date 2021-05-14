@@ -79,6 +79,7 @@ void GlobalWaypointDriver_ReceiveFSM::setupNotifications()
 	p_pub_pose = cfg.advertise<geometry_msgs::PoseStamped>("cmd_global_pose", 5);
 	p_pub_fix = cfg.advertise<sensor_msgs::NavSatFix>("cmd_fix", 5);
 	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_travel_speed", 5, true);
+	p_pub_geopose = cfg.advertise<geographic_msgs::GeoPoseStamped>("cmd_global_geopose", 5);
 	p_sub_finished = cfg.subscribe<std_msgs::Bool>("global_way_point_reached", 5, &GlobalWaypointDriver_ReceiveFSM::pRosFinished, this);
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
@@ -199,6 +200,16 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 		nav_goal.longitude = lon;
 		nav_goal.altitude = alt;
 		p_pub_fix.publish(nav_goal);
+		geographic_msgs::GeoPoseStamped geopose;
+		geopose.header = path.header;
+		geopose.pose.position.latitude = lat;
+		geopose.pose.position.longitude = lon;
+		geopose.pose.position.altitude = alt;
+		geopose.pose.orientation.x = quat.x();
+		geopose.pose.orientation.y = quat.y();
+		geopose.pose.orientation.z = quat.z();
+		geopose.pose.orientation.w = quat.w();
+		p_pub_geopose.publish(geopose);
 	}
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
 //	this->p_pub_path.publish(path);

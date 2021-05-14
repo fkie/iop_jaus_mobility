@@ -10,6 +10,7 @@
   <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
 
   <buildtool_depend>catkin</buildtool_depend>
+  <depend>geographic_msgs</depend>
   <depend>gps_common</depend>
   <depend>fkie_iop_component</depend>
   <depend>fkie_iop_list_manager</depend>

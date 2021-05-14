@@ -20,6 +20,8 @@
 #include "urn_jaus_jss_core_ListManager/ListManager_ReceiveFSM.h"
 
 #include <ros/ros.h>
+#include <geographic_msgs/GeoPath.h>
+#include <geographic_msgs/GeoPoseStamped.h>
 #include <nav_msgs/Path.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Bool.h>
@@ -72,6 +74,7 @@ protected:
 	ros::Publisher p_pub_path;
 	ros::Publisher p_pub_tv_max;
 	ros::Subscriber p_sub_finished;
+	ros::Publisher p_pub_geopath;
 	float p_travel_speed;
 	float p_tv_max;
 	std::string p_tf_frame_world;
@@ -82,6 +85,7 @@ protected:
 
 	void pRosFinished(const std_msgs::Bool::ConstPtr& state);
 	geometry_msgs::PoseStamped get_pose_from_waypoint(iop::InternalElement& element, bool update_current=false);
+	geographic_msgs::GeoPoseStamped get_geopose_from_waypoint(iop::InternalElement& element, bool update_current=false);
 
 };
 

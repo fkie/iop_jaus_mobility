@@ -7,6 +7,7 @@ project(fkie_iop_global_waypoint_driver)
 find_package(catkin REQUIRED COMPONENTS
              fkie_iop_component
              fkie_iop_management
+             geographic_msgs
              geometry_msgs
              gps_common
              nav_msgs
@@ -27,6 +28,7 @@ catkin_package(
     CATKIN_DEPENDS
         fkie_iop_component
         fkie_iop_management
+        geographic_msgs
         geometry_msgs
         gps_common
         nav_msgs
