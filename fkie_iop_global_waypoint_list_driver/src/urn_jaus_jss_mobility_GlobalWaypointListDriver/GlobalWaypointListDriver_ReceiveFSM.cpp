@@ -97,6 +97,7 @@ void GlobalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
 	pListManager_ReceiveFSM->list_manager().register_supported_element(SetGlobalWaypoint::ID, this);
 	//create ROS subscriber
 	p_travel_speed = 0.0;
+	p_pub_geopath = cfg.create_publisher<geographic_msgs::msg::GeoPath>("cmd_global_geopath", 5);
 	p_pub_path = cfg.create_publisher<nav_msgs::msg::Path>("cmd_global_waypoints", 5);
 	p_pub_tv_max = cfg.create_publisher<std_msgs::msg::Float32>("cmd_travel_speed", 5);
 	p_sub_finished = cfg.create_subscription<std_msgs::msg::Bool>("global_way_points_finished", 5, std::bind(&GlobalWaypointListDriver_ReceiveFSM::pRosFinished, this, std::placeholders::_1));
@@ -284,6 +285,65 @@ void GlobalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool
 	}
 }
 
+geographic_msgs::msg::GeoPoseStamped GlobalWaypointListDriver_ReceiveFSM::get_geopose_from_waypoint(iop::InternalElement& element, bool update_current)
+{
+	SetGlobalWaypoint wp;
+	wp.decode(element.get_report().getBody()->getElementRec()->getElementData()->getData());
+	auto result = geographic_msgs::msg::GeoPoseStamped();
+	double lat, lon, alt = 0.0;
+	double roll, pitch, yaw = 0.0;
+	SetGlobalWaypoint::Body::GlobalWaypointRec *wprec = wp.getBody()->getGlobalWaypointRec();
+	lat = wprec->getLatitude();
+	lon = wprec->getLongitude();
+	if (wprec->isAltitudeValid()) {
+		alt = wprec->getAltitude();
+	}
+	if (wprec->isRollValid()) {
+		roll = wprec->getRoll();
+	}
+	if (wprec->isPitchValid()) {
+		pitch = wprec->getPitch();
+	}
+	if (wprec->isYawValid()) {
+		yaw = wprec->getYaw();
+	}
+	if (update_current) {
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(lat);
+		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(lon);
+		if (wprec->isAltitudeValid()) {
+			p_current_waypoint.getBody()->getGlobalWaypointRec()->setAltitude(alt);
+		}
+		if (wprec->isRollValid()) {
+			p_current_waypoint.getBody()->getGlobalWaypointRec()->setRoll(roll);
+		}
+		if (wprec->isPitchValid()) {
+			p_current_waypoint.getBody()->getGlobalWaypointRec()->setPitch(pitch);
+		}
+		if (wprec->isYawValid()) {
+			p_current_waypoint.getBody()->getGlobalWaypointRec()->setYaw(yaw);
+		}
+		if (wprec->isWaypointToleranceValid()) {
+			p_current_waypoint.getBody()->getGlobalWaypointRec()->setWaypointTolerance(wprec->getWaypointTolerance());
+		}
+		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
+	}
+	tf2::Quaternion quat;
+	quat.setRPY(roll, pitch, yaw);
+
+	if (lat > -90.0 && lon > -180.0) {
+		RCLCPP_DEBUG(logger, "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		result.pose.position.latitude = lat;
+		result.pose.position.longitude = lon;
+		result.pose.position.altitude = alt;
+		result.pose.orientation.x = quat.x();
+		result.pose.orientation.y = quat.y();
+		result.pose.orientation.z = quat.z();
+		result.pose.orientation.w = quat.w();
+	}
+	return result;
+
+}
+
 geometry_msgs::msg::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_waypoint(iop::InternalElement& element, bool update_current)
 {
 	SetGlobalWaypoint wp;
@@ -333,7 +393,7 @@ geometry_msgs::msg::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_fr
 	quat.setRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		RCLCPP_DEBUG(logger, "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
 		result.pose.position.x = easting;
 		result.pose.position.y = northing;
 		result.pose.position.z = alt;

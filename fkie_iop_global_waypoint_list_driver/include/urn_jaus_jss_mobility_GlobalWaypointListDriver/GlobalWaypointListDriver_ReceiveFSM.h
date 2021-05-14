@@ -23,6 +23,8 @@
 #include "GlobalWaypointListDriver_ReceiveFSM_sm.h"
 #include <rclcpp/rclcpp.hpp>
 #include <fkie_iop_component/iop_component.hpp>
+#include <geographic_msgs/msg/geo_path.hpp>
+#include <geographic_msgs/msg/geo_pose_stamped.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -73,6 +75,7 @@ protected:
 
 	std::shared_ptr<iop::Component> cmp;
 	rclcpp::Logger logger;
+	rclcpp::Publisher<geographic_msgs::msg::GeoPath>::SharedPtr p_pub_geopath;
 	rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr p_pub_path;
 	rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr p_pub_tv_max;
 	rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr p_sub_finished;
@@ -85,6 +88,7 @@ protected:
 	jUnsignedShortInteger p_last_uid;
 
 	void pRosFinished(const std_msgs::msg::Bool::SharedPtr state);
+	geographic_msgs::msg::GeoPoseStamped get_geopose_from_waypoint(iop::InternalElement& element, bool update_current=false);
 	geometry_msgs::msg::PoseStamped get_pose_from_waypoint(iop::InternalElement& element, bool update_current=false);
 
 };

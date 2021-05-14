@@ -10,6 +10,7 @@
   <url type="website">https://github.com/fkie/iop_jaus_mobility</url>
 
   <depend>fkie_iop_management</depend>
+  <depend>geographic_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
   <depend>sensor_msgs</depend>

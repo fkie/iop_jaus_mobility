@@ -17,6 +17,10 @@ _tv_max (float_ , Default: 1.0)
 
 #### Publisher:
 
+_cmd_global_geopose (geographic_msgs::GeoPoseStamped)_
+
+> Alternative command position.
+
 _cmd_global_pose (geometry_msgs::PoseStamped)_
 
 > The command position.

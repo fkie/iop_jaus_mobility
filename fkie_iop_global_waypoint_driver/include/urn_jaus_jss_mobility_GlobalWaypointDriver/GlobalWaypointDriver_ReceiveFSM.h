@@ -24,6 +24,8 @@
 #include <fkie_iop_component/iop_component.hpp>
 
 #include <nav_msgs/msg/path.hpp>
+#include <geographic_msgs/msg/geo_path.hpp>
+#include <geographic_msgs/msg/geo_pose_stamped.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <sensor_msgs/msg/nav_sat_fix.hpp>
 #include <std_msgs/msg/float32.hpp>
@@ -69,6 +71,7 @@ protected:
 
 	std::shared_ptr<iop::Component> cmp;
 	rclcpp::Logger logger;
+	rclcpp::Publisher<geographic_msgs::msg::GeoPoseStamped>::SharedPtr p_pub_geopose;
 	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr p_pub_pose;
 	rclcpp::Publisher<sensor_msgs::msg::NavSatFix>::SharedPtr p_pub_fix;
 	rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr p_pub_tv_max;

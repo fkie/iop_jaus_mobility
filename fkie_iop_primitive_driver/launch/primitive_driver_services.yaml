@@ -6,6 +6,7 @@ iop_primitive_driver:
       - fkie_iop_platform_mode/PlatformMode
       - fkie_iop_platform_state/PlatformState
       - fkie_iop_primitive_driver/PrimitiveDriver
+      - fkie_iop_global_pose_sensor/GlobalPoseSensor
     Events.timeout: 5
     Discovery:
       # 0: Reserved, 1: System Identification, 2: Subsystem Identification, 3: Node Identification, 4: Component Identification, 5 – 255: Reserved

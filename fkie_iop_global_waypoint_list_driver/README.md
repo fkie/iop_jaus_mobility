@@ -17,6 +17,10 @@ _tv_max (float_ , Default: 1.0)
 
 #### Publisher:
 
+_cmd_global_geopath (geographic_msgs::GeoPath)_
+
+> The list with global waypoints. It can also be an empty list to abort the execution.
+
 _cmd_global_waypoints (nav_msgs::msg::Path)_
 
 > The list with global waypoints. It can also be an empty list to abort the execution.

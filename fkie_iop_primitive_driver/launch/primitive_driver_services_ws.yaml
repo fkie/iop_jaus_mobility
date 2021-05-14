@@ -6,6 +6,8 @@ iop_primitive_driver:
       - fkie_iop_platform_mode/PlatformMode
       - fkie_iop_platform_state/PlatformState
       - fkie_iop_primitive_driver/PrimitiveDriver
+      - fkie_iop_local_pose_sensor/LocalPoseSensor
+      - fkie_iop_costmap2d/CostMap2D
       - fkie_iop_platform_specification/PlatformSpecificationsService
     Events.timeout: 5
     Discovery:
