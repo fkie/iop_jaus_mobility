@@ -25,6 +25,14 @@ _cmd_global_waypoints (nav_msgs::msg::Path)_
 
 > The list with global waypoints. It can also be an empty list to abort the execution.
 
+_cmd_global_geopose (geographic_msgs::GeoPoseStamped)_
+
+> Alternative first command position.
+
+_cmd_global_pose (geometry_msgs::PoseStamped)_
+
+> First command position of the list.
+
 _cmd_travel_speed (std_msgs::msg::Float32)_, latched
 
 > The maximum speed configured by parameter or send from OCU. Speed from OCU is always smaller or equal to parameterized value.

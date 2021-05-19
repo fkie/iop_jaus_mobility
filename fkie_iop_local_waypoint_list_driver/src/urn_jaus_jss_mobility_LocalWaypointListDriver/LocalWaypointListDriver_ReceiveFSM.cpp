@@ -108,9 +108,9 @@ void LocalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList m
 	JausAddress sender = transportData.getAddress();
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
 	jUnsignedShortInteger start_iud = msg.getBody()->getExecuteListRec()->getElementUID();
-	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
+	RCLCPP_DEBUG(logger, "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
 	if (!pListManager_ReceiveFSM->list_manager().execute_list(start_iud, speed)) {
-		RCLCPP_WARN(logger, "ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
+		RCLCPP_WARN(logger, "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
 		RejectElementRequest reject;
 		reject.getBody()->getRejectElementRec()->setRequestID(0);
 		reject.getBody()->getRejectElementRec()->setResponseCode(pListManager_ReceiveFSM->list_manager().get_error_code());
@@ -121,10 +121,10 @@ void LocalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList m
 void LocalWaypointListDriver_ReceiveFSM::modifyTravelSpeedAction(ExecuteList msg)
 {
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
-	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "modify travel speed to %.2f", speed);
+	RCLCPP_DEBUG(logger, "modify travel speed to %.2f", speed);
 	p_travel_speed = speed;
 	if (p_travel_speed > p_tv_max) {
-		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "  reset travel speed to max %.2f", p_tv_max);
+		RCLCPP_DEBUG(logger, "  reset travel speed to max %.2f", p_tv_max);
 		p_travel_speed = p_tv_max;
 	}
 	auto ros_msg = std_msgs::msg::Float32();
@@ -134,7 +134,7 @@ void LocalWaypointListDriver_ReceiveFSM::modifyTravelSpeedAction(ExecuteList msg
 
 void LocalWaypointListDriver_ReceiveFSM::resetTravelSpeedAction()
 {
-	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "reset travel speed to default: %.2f", 0.0);
+	RCLCPP_DEBUG(logger, "reset travel speed to default: %.2f", 0.0);
 	p_travel_speed = 0.0;
 	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
@@ -145,7 +145,7 @@ void LocalWaypointListDriver_ReceiveFSM::sendReportActiveElementAction(QueryActi
 {
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
-	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "report active element %d to %s", cuid, requester.str().c_str());
+	RCLCPP_DEBUG(logger, "report active element %d to %s", cuid, requester.str().c_str());
 	ReportActiveElement reply;
 	reply.getBody()->getActiveElementRec()->setElementUID(cuid);
 	sendJausMessage(reply, requester);
@@ -156,12 +156,12 @@ void LocalWaypointListDriver_ReceiveFSM::sendReportLocalWaypointAction(QueryLoca
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
-		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "report current local point (uid: %d) to %s", cuid, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "report current local point (uid: %d) to %s", cuid, requester.str().c_str());
 		iop::InternalElement el = pListManager_ReceiveFSM->list_manager().get_element(cuid);
 		if (el.get_uid() != 0) {
 			ReportLocalWaypoint reply;
 			reply.decode(el.get_report().getBody()->getElementRec()->getElementData()->getData());
-			RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "  local waypoint: x %.2f, y %.2f",
+			RCLCPP_DEBUG(logger, "  local waypoint: x %.2f, y %.2f",
 					reply.getBody()->getLocalWaypointRec()->getX(), reply.getBody()->getLocalWaypointRec()->getY());
 			sendJausMessage(reply, requester);
 		}
@@ -175,7 +175,7 @@ void LocalWaypointListDriver_ReceiveFSM::sendReportTravelSpeedAction(QueryTravel
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
 		JausAddress requester = transportData.getAddress();
-		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
 		ReportTravelSpeed reply;
 		reply.getBody()->getTravelSpeedRec()->setSpeed(p_travel_speed);
 		sendJausMessage(reply, requester);
@@ -274,10 +274,10 @@ void LocalWaypointListDriver_ReceiveFSM::stop_execution()
 void LocalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool::SharedPtr state)
 {
 	if (state->data && p_last_uid != 0) {
-		RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "execution finished");
+		RCLCPP_DEBUG(logger, "execution finished");
 		bool finished = pListManager_ReceiveFSM->list_manager().finished(p_last_uid);
 		if (finished) {
-			RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "  there are futher elements available, execute!");
+			RCLCPP_DEBUG(logger, "  there are futher elements available, execute!");
 		} else {
 			stop_execution();
 		}
@@ -329,7 +329,7 @@ geometry_msgs::msg::PoseStamped::SharedPtr LocalWaypointListDriver_ReceiveFSM::g
 	tf2::Quaternion quat;
 	quat.setRPY(roll, pitch, yaw);
 
-	RCLCPP_DEBUG(logger, "LocalWaypointListDriver", "add Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", x, y, z, roll, pitch, yaw);
+	RCLCPP_DEBUG(logger, "add Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", x, y, z, roll, pitch, yaw);
 	result->pose.position.x = x;
 	result->pose.position.y = y;
 	result->pose.position.z = z;

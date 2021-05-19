@@ -77,6 +77,8 @@ protected:
 	rclcpp::Logger logger;
 	rclcpp::Publisher<geographic_msgs::msg::GeoPath>::SharedPtr p_pub_geopath;
 	rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr p_pub_path;
+	rclcpp::Publisher<geographic_msgs::msg::GeoPoseStamped>::SharedPtr p_pub_geopose;
+	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr p_pub_pose;
 	rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr p_pub_tv_max;
 	rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr p_sub_finished;
 	double p_travel_speed;

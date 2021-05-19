@@ -124,7 +124,7 @@ void LocalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::Rec
 {
 	/// Insert User Code HERE
 	/// Insert User Code HERE
-	RCLCPP_DEBUG(logger, "LocalPoseSensor", "request %s from %d.%d.%d", arg0.c_str(),
+	RCLCPP_DEBUG(logger, "request %s from %d.%d.%d", arg0.c_str(),
 			  transportData.getSrcSubsystemID(), transportData.getSrcNodeID(), transportData.getSrcComponentID());
 	JausAddress sender = JausAddress(transportData.getSrcSubsystemID(),
 									 transportData.getSrcNodeID(),
@@ -137,7 +137,7 @@ void LocalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::Rec
 void LocalPoseSensor_ReceiveFSM::updateLocalPoseAction(SetLocalPose msg)
 {
 	/// Insert User Code HERE
-	RCLCPP_WARN(logger, "LocalPoseSensor", "updateLocalPoseAction not implemented");
+	RCLCPP_WARN(logger, "updateLocalPoseAction not implemented");
 }
 
 
@@ -167,7 +167,7 @@ void LocalPoseSensor_ReceiveFSM::tfCallback()
 			p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
 			p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
 		} catch (const std::exception& e) {
-			RCLCPP_WARN(logger, "LocalPoseSensor", "Error while get yaw, pitch, roll from quaternion: %s", e.what());
+			RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 		}
 		// set timestamp
 		ReportLocalPose::Body::LocalPoseRec::TimeStamp ts;
@@ -202,7 +202,7 @@ void LocalPoseSensor_ReceiveFSM::poseReceived(const geometry_msgs::msg::PoseStam
 		p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
 	} catch (const std::exception& e) {
-		RCLCPP_WARN(logger, "LocalPoseSensor", "Error while get yaw, pitch, roll from quaternion: %s", e.what());
+		RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 	}
 	// set timestamp
 	ReportLocalPose::Body::LocalPoseRec::TimeStamp ts;
@@ -233,7 +233,7 @@ void LocalPoseSensor_ReceiveFSM::odomReceived(const nav_msgs::msg::Odometry::Sha
 		p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
 	} catch (const std::exception& e) {
-		RCLCPP_WARN(logger, "LocalPoseSensor", "Error while get yaw, pitch, roll from quaternion: %s", e.what());
+		RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 	}
 	// set timestamp
 	ReportLocalPose::Body::LocalPoseRec::TimeStamp ts;

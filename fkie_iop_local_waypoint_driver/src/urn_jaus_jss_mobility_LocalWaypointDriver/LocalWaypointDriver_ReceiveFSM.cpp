@@ -112,14 +112,14 @@ void LocalWaypointDriver_ReceiveFSM::resetTravelSpeedAction()
 void LocalWaypointDriver_ReceiveFSM::sendReportLocalWaypointAction(QueryLocalWaypoint msg, Receive::Body::ReceiveRec transportData)
 {
 	JausAddress sender = transportData.getAddress();
-	RCLCPP_DEBUG(logger, "LocalWaypointDriver", "sendReportLocalWaypointAction to %s", sender.str().c_str());
+	RCLCPP_DEBUG(logger, "sendReportLocalWaypointAction to %s", sender.str().c_str());
 	sendJausMessage(p_current_waypoint, sender);
 }
 
 void LocalWaypointDriver_ReceiveFSM::sendReportTravelSpeedAction(QueryTravelSpeed msg, Receive::Body::ReceiveRec transportData)
 {
 	JausAddress sender = transportData.getAddress();
-	RCLCPP_DEBUG(logger, "LocalWaypointDriver", "sendReportTravelSpeedAction to %s", sender.str().c_str());
+	RCLCPP_DEBUG(logger, "sendReportTravelSpeedAction to %s", sender.str().c_str());
 	ReportTravelSpeed report;
 	report.getBody()->getTravelSpeedRec()->setSpeed(p_travel_speed);
 	sendJausMessage(report, sender);
@@ -129,10 +129,10 @@ void LocalWaypointDriver_ReceiveFSM::setTravelSpeedAction(SetTravelSpeed msg, Re
 {
 	JausAddress sender = transportData.getAddress();
 	p_travel_speed = msg.getBody()->getTravelSpeedRec()->getSpeed();
-	RCLCPP_DEBUG(logger, "LocalWaypointDriver", "setTravelSpeedAction from %s to %.2f", sender.str().c_str(), p_travel_speed);
+	RCLCPP_DEBUG(logger, "setTravelSpeedAction from %s to %.2f", sender.str().c_str(), p_travel_speed);
 	if (p_tv_max < p_travel_speed) {
 		p_travel_speed = p_tv_max;
-		RCLCPP_DEBUG(logger, "LocalWaypointDriver", "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
+		RCLCPP_DEBUG(logger, "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
 	}
 	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
@@ -145,7 +145,7 @@ void LocalWaypointDriver_ReceiveFSM::setTravelSpeedAction(SetTravelSpeed msg, Re
 void LocalWaypointDriver_ReceiveFSM::setWaypointAction(SetLocalWaypoint msg, Receive::Body::ReceiveRec transportData)
 {
 	JausAddress sender = transportData.getAddress();
-	RCLCPP_DEBUG(logger, "LocalWaypointDriver", "setWaypointAction from %s", sender.str().c_str());
+	RCLCPP_DEBUG(logger, "setWaypointAction from %s", sender.str().c_str());
 	double roll, pitch, yaw = 0.0;
 	SetLocalWaypoint::Body::LocalWaypointRec *wprec = msg.getBody()->getLocalWaypointRec();
 	double x = wprec->getX();
@@ -179,7 +179,7 @@ void LocalWaypointDriver_ReceiveFSM::setWaypointAction(SetLocalWaypoint msg, Rec
 	tf2::Quaternion quat;
 	quat.setRPY(roll, pitch, yaw);
 
-	RCLCPP_INFO(logger, "LocalWaypointDriver", "new Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", x, y, z, roll, pitch, yaw);
+	RCLCPP_INFO(logger, "new Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f, frame_id: %s", x, y, z, roll, pitch, yaw, path.header.frame_id.c_str());
 	auto pose = geometry_msgs::msg::PoseStamped();
 	pose.header = path.header;
 	pose.pose.position.x = x;
@@ -211,7 +211,7 @@ void LocalWaypointDriver_ReceiveFSM::pStop()
 void LocalWaypointDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool::SharedPtr state)
 {
 	if (state->data) {
-		RCLCPP_DEBUG(logger, "LocalWaypointDriver", "local waypoint reached");
+		RCLCPP_DEBUG(logger, "local waypoint reached");
 		p_current_waypoint.getBody()->getLocalWaypointRec()->setX(0.0);
 		p_current_waypoint.getBody()->getLocalWaypointRec()->setY(0.0);
 		p_current_waypoint.getBody()->getLocalWaypointRec()->setZ(0.0);

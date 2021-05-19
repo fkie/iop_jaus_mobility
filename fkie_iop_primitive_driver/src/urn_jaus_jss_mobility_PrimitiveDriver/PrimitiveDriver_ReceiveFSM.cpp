@@ -137,7 +137,7 @@ void PrimitiveDriver_ReceiveFSM::sendReportWrenchEffortAction(QueryWrenchEffort 
 {
 	/// Insert User Code HERE
 	JausAddress sender = transportData.getAddress();
-	RCLCPP_DEBUG(logger, "PrimitiveDriver", "report WrenchEffortAction to %s", sender.str().c_str());
+	RCLCPP_DEBUG(logger, "report WrenchEffortAction to %s", sender.str().c_str());
 	ReportWrenchEffort response;
 	response.getBody()->setWrenchEffortRec(current_wrench_effort_);
 	this->sendJausMessage(response, sender);

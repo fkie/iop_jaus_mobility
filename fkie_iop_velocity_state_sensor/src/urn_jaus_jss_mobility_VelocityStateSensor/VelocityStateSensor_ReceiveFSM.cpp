@@ -77,7 +77,7 @@ void VelocityStateSensor_ReceiveFSM::setupIopConfiguration()
 void VelocityStateSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
 {
 	/// Insert User Code HERE
-	RCLCPP_DEBUG(logger, "VelocityStateSensor", "request from %d.%d.%d",
+	RCLCPP_DEBUG(logger, "request from %d.%d.%d",
 			  transportData.getSrcSubsystemID(), transportData.getSrcNodeID(), transportData.getSrcComponentID());
 	JausAddress sender = JausAddress(transportData.getSrcSubsystemID(),
 									 transportData.getSrcNodeID(),

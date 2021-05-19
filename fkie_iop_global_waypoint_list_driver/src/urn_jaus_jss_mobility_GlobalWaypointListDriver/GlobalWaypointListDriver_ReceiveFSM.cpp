@@ -99,6 +99,8 @@ void GlobalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
 	p_travel_speed = 0.0;
 	p_pub_geopath = cfg.create_publisher<geographic_msgs::msg::GeoPath>("cmd_global_geopath", 5);
 	p_pub_path = cfg.create_publisher<nav_msgs::msg::Path>("cmd_global_waypoints", 5);
+	p_pub_geopose = cfg.create_publisher<geographic_msgs::msg::GeoPoseStamped>("cmd_global_geopose", 5);
+	p_pub_pose = cfg.create_publisher<geometry_msgs::msg::PoseStamped>("cmd_global_pose", 5);
 	p_pub_tv_max = cfg.create_publisher<std_msgs::msg::Float32>("cmd_travel_speed", 5);
 	p_sub_finished = cfg.create_subscription<std_msgs::msg::Bool>("global_way_points_finished", 5, std::bind(&GlobalWaypointListDriver_ReceiveFSM::pRosFinished, this, std::placeholders::_1));
 	auto ros_msg = std_msgs::msg::Float32();
@@ -111,9 +113,9 @@ void GlobalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList 
 	JausAddress sender = transportData.getAddress();
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
 	jUnsignedShortInteger start_iud = msg.getBody()->getExecuteListRec()->getElementUID();
-	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
+	RCLCPP_DEBUG(logger, "execute waypoint list with elements: %d, speed %.2f, start uid: %d", pListManager_ReceiveFSM->list_manager().size(), speed, start_iud);
 	if (!pListManager_ReceiveFSM->list_manager().execute_list(start_iud, speed)) {
-		RCLCPP_WARN(logger, "ListManager", "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
+		RCLCPP_WARN(logger, "execute waypoint list failed with error: %d (%s)", pListManager_ReceiveFSM->list_manager().get_error_code(), pListManager_ReceiveFSM->list_manager().get_error_msg().c_str());
 		RejectElementRequest reject;
 		reject.getBody()->getRejectElementRec()->setRequestID(0);
 		reject.getBody()->getRejectElementRec()->setResponseCode(pListManager_ReceiveFSM->list_manager().get_error_code());
@@ -124,10 +126,10 @@ void GlobalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList 
 void GlobalWaypointListDriver_ReceiveFSM::modifyTravelSpeedAction(ExecuteList msg)
 {
 	double speed = msg.getBody()->getExecuteListRec()->getSpeed();
-	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "modify travel speed to %.2f", speed);
+	RCLCPP_DEBUG(logger, "modify travel speed to %.2f", speed);
 	p_travel_speed = speed;
 	if (p_travel_speed > p_tv_max) {
-		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "  reset travel speed to max %.2f", p_tv_max);
+		RCLCPP_DEBUG(logger, "  reset travel speed to max %.2f", p_tv_max);
 		p_travel_speed = p_tv_max;
 	}
 	auto ros_msg = std_msgs::msg::Float32();
@@ -137,7 +139,7 @@ void GlobalWaypointListDriver_ReceiveFSM::modifyTravelSpeedAction(ExecuteList ms
 
 void GlobalWaypointListDriver_ReceiveFSM::resetTravelSpeedAction()
 {
-	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "reset travel speed to default: %.2f", 0.0);
+	RCLCPP_DEBUG(logger, "reset travel speed to default: %.2f", 0.0);
 	p_travel_speed = 0.0;
 	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
@@ -148,7 +150,7 @@ void GlobalWaypointListDriver_ReceiveFSM::sendReportActiveElementAction(QueryAct
 {
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
-	RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "report active element %d to %s", cuid, requester.str().c_str());
+	RCLCPP_DEBUG(logger, "report active element %d to %s", cuid, requester.str().c_str());
 	ReportActiveElement reply;
 	reply.getBody()->getActiveElementRec()->setElementUID(cuid);
 	sendJausMessage(reply, requester);
@@ -159,12 +161,12 @@ void GlobalWaypointListDriver_ReceiveFSM::sendReportGlobalWaypointAction(QueryGl
 	JausAddress requester = transportData.getAddress();
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
-		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "report current global point (uid: %d) to %s", cuid, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "report current global point (uid: %d) to %s", cuid, requester.str().c_str());
 		iop::InternalElement el = pListManager_ReceiveFSM->list_manager().get_element(cuid);
 		if (el.get_uid() != 0) {
 			ReportGlobalWaypoint reply;
 			reply.decode(el.get_report().getBody()->getElementRec()->getElementData()->getData());
-			RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "  global waypoint: lat %.2f, lon %.2f",
+			RCLCPP_DEBUG(logger, "  global waypoint: lat %.2f, lon %.2f",
 					reply.getBody()->getGlobalWaypointRec()->getLatitude(), reply.getBody()->getGlobalWaypointRec()->getLongitude());
 			sendJausMessage(reply, requester);
 		}
@@ -178,7 +180,7 @@ void GlobalWaypointListDriver_ReceiveFSM::sendReportTravelSpeedAction(QueryTrave
 	jUnsignedShortInteger cuid = pListManager_ReceiveFSM->list_manager().get_current_element();
 	if (cuid != 65535 && cuid != 0) {
 		JausAddress requester = transportData.getAddress();
-		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
+		RCLCPP_DEBUG(logger, "report current travel speed %.2f to %s", p_travel_speed, requester.str().c_str());
 		ReportTravelSpeed reply;
 		reply.getBody()->getTravelSpeedRec()->setSpeed(p_travel_speed);
 		sendJausMessage(reply, requester);
@@ -226,6 +228,7 @@ void GlobalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::Internal
 	auto path = nav_msgs::msg::Path();
 	path.header.stamp = cmp->now();
 	path.header.frame_id = p_tf_frame_world;
+	auto geopath = geographic_msgs::msg::GeoPath();
 	std::vector<iop::InternalElement>::iterator it;
 	if (elements.size() == 0) {
 		p_current_element.getBody()->getActiveElementRec()->setElementUID(0);
@@ -241,17 +244,23 @@ void GlobalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::Internal
 	}
 	for (it = elements.begin(); it != elements.end(); ++it) {
 		geometry_msgs::msg::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
+		geographic_msgs::msg::GeoPoseStamped geopose = get_geopose_from_waypoint(*it, false);
+		pose.header = path.header;
+		geopose.header = path.header;
 		if (it == elements.begin()) {
 			pListManager_ReceiveFSM->list_manager().set_current_element(it->get_uid());
 			p_current_element.getBody()->getActiveElementRec()->setElementUID(it->get_uid());
 			pEvents_ReceiveFSM->get_event_handler().set_report(QueryActiveElement::ID, &p_current_element);
 			pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
+			p_pub_pose->publish(pose);
+			p_pub_geopose->publish(geopose);
 		}
-		pose.header = path.header;
-		path.poses.push_back(pose);
 		p_last_uid = it->get_uid();
+		path.poses.push_back(pose);
+		geopath.poses.push_back(geopose);
 	}
 	p_pub_path->publish(path);
+	p_pub_geopath->publish(geopath);
 }
 
 void GlobalWaypointListDriver_ReceiveFSM::stop_execution()
@@ -275,10 +284,10 @@ void GlobalWaypointListDriver_ReceiveFSM::stop_execution()
 void GlobalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool::SharedPtr state)
 {
 	if (state->data && p_last_uid != 0) {
-		RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "execution finished");
+		RCLCPP_DEBUG(logger, "execution finished");
 		bool finished = pListManager_ReceiveFSM->list_manager().finished(p_last_uid);
 		if (finished) {
-			RCLCPP_DEBUG(logger, "GlobalWaypointListDriver", "  there are futher elements available, execute!");
+			RCLCPP_DEBUG(logger, "  there are futher elements available, execute!");
 		} else {
 			stop_execution();
 		}

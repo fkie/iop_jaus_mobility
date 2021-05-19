@@ -117,7 +117,7 @@ void GlobalWaypointDriver_ReceiveFSM::sendReportGlobalWaypointAction(QueryGlobal
 	uint8_t node_id = transportData.getSourceID()->getNodeID();
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
-	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "sendReportGlobalWaypointAction to %d.%d.%d", subsystem_id, node_id, component_id);
+	RCLCPP_DEBUG(logger, "sendReportGlobalWaypointAction to %d.%d.%d", subsystem_id, node_id, component_id);
 	sendJausMessage(p_current_waypoint, sender);
 }
 
@@ -127,7 +127,7 @@ void GlobalWaypointDriver_ReceiveFSM::sendReportTravelSpeedAction(QueryTravelSpe
 	uint8_t node_id = transportData.getSourceID()->getNodeID();
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
-	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "sendReportTravelSpeedAction to %d.%d.%d", subsystem_id, node_id, component_id);
+	RCLCPP_DEBUG(logger, "sendReportTravelSpeedAction to %d.%d.%d", subsystem_id, node_id, component_id);
 	ReportTravelSpeed report;
 	report.getBody()->getTravelSpeedRec()->setSpeed(p_travel_speed);
 	sendJausMessage(report, sender);
@@ -140,10 +140,10 @@ void GlobalWaypointDriver_ReceiveFSM::setTravelSpeedAction(SetTravelSpeed msg, R
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
 	p_travel_speed = msg.getBody()->getTravelSpeedRec()->getSpeed();
-	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "setTravelSpeedAction from %d.%d.%d to %.2f", subsystem_id, node_id, component_id, p_travel_speed);
+	RCLCPP_DEBUG(logger, "setTravelSpeedAction from %d.%d.%d to %.2f", subsystem_id, node_id, component_id, p_travel_speed);
 	if (p_tv_max < p_travel_speed) {
 		p_travel_speed = p_tv_max;
-		RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
+		RCLCPP_DEBUG(logger, "  reduce travel speed do to parameter settings of %.2f", p_travel_speed);
 	}
 	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
@@ -159,7 +159,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	uint8_t node_id = transportData.getSourceID()->getNodeID();
 	uint8_t component_id = transportData.getSourceID()->getComponentID();
 	JausAddress sender(subsystem_id, node_id, component_id);
-	RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "setWaypointAction from %d.%d.%d", subsystem_id, node_id, component_id);
+	RCLCPP_DEBUG(logger, "setWaypointAction from %d.%d.%d", subsystem_id, node_id, component_id);
 	double lat, lon, alt = 0.0;
 	double roll, pitch, yaw = 0.0;
 	SetGlobalWaypoint::Body::GlobalWaypointRec *wprec = msg.getBody()->getGlobalWaypointRec();
@@ -197,7 +197,7 @@ void GlobalWaypointDriver_ReceiveFSM::setWaypointAction(SetGlobalWaypoint msg, R
 	quat.setRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		RCLCPP_INFO(logger, "GlobalWaypointDriver", "new Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		RCLCPP_INFO(logger, "new Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2fm frame_id: %s", lat, lon, alt, roll, pitch, yaw, path.header.frame_id.c_str());
 		auto pose = geometry_msgs::msg::PoseStamped();
 		pose.header = path.header;
 		pose.pose.position.x = easting;
@@ -249,7 +249,7 @@ void GlobalWaypointDriver_ReceiveFSM::pStop()
 void GlobalWaypointDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool::SharedPtr state)
 {
 	if (state->data) {
-		RCLCPP_DEBUG(logger, "GlobalWaypointDriver", "global waypoint reached");
+		RCLCPP_DEBUG(logger, "global waypoint reached");
 		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
 		p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
 		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalWaypoint::ID, &p_current_waypoint);
