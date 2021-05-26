@@ -75,6 +75,7 @@ protected:
 	std::shared_ptr<iop::Component> cmp;
 	rclcpp::Logger logger;
 	rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr p_pub_path;
+	rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr p_pub_pose;
 	rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr p_pub_tv_max;
 	rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr p_sub_finished;
 	float p_travel_speed;
@@ -86,7 +87,7 @@ protected:
 	jUnsignedShortInteger p_last_uid;
 
 	void pRosFinished(const std_msgs::msg::Bool::SharedPtr state);
-	geometry_msgs::msg::PoseStamped::SharedPtr get_pose_from_waypoint(iop::InternalElement& element, bool update_current=false);
+	geometry_msgs::msg::PoseStamped get_pose_from_waypoint(iop::InternalElement& element, bool update_current=false);
 
 };
 

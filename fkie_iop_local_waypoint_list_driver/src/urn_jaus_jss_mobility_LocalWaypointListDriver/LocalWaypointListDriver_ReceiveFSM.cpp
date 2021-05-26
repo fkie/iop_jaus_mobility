@@ -96,6 +96,7 @@ void LocalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
 	//create ROS subscriber
 	p_travel_speed = 0.0;
 	p_pub_path = cfg.create_publisher<nav_msgs::msg::Path>("cmd_local_waypoints", 5);
+	p_pub_pose = cfg.create_publisher<geometry_msgs::msg::PoseStamped>("cmd_local_pose", 5);
 	p_pub_tv_max = cfg.create_publisher<std_msgs::msg::Float32>("cmd_travel_speed", 5);
 	p_sub_finished = cfg.create_subscription<std_msgs::msg::Bool>("local_way_points_finished", 5, std::bind(&LocalWaypointListDriver_ReceiveFSM::pRosFinished, this, std::placeholders::_1));
 	auto ros_msg = std_msgs::msg::Float32();
@@ -238,17 +239,19 @@ void LocalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::InternalE
 		p_executing = true;
 	}
 	for (it = elements.begin(); it != elements.end(); ++it) {
-		geometry_msgs::msg::PoseStamped::SharedPtr pose = get_pose_from_waypoint(*it, it == elements.begin());
+		geometry_msgs::msg::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
+		pose.header = path.header;
 		if (it == elements.begin()) {
 			pListManager_ReceiveFSM->list_manager().set_current_element(it->get_uid());
 			p_current_element.getBody()->getActiveElementRec()->setElementUID(it->get_uid());
 			pEvents_ReceiveFSM->get_event_handler().set_report(QueryActiveElement::ID, &p_current_element);
 			pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalWaypoint::ID, &p_current_waypoint);
+			p_pub_pose->publish(pose);
 		}
-		pose->header = path.header;
-		path.poses.push_back(*pose.get());
+		path.poses.push_back(pose);
 		p_last_uid = it->get_uid();
 	}
+	RCLCPP_INFO(logger, "publish command path with %d waypoints", path.poses.size());
 	p_pub_path->publish(path);
 }
 
@@ -284,11 +287,11 @@ void LocalWaypointListDriver_ReceiveFSM::pRosFinished(const std_msgs::msg::Bool:
 	}
 }
 
-geometry_msgs::msg::PoseStamped::SharedPtr LocalWaypointListDriver_ReceiveFSM::get_pose_from_waypoint(iop::InternalElement& element, bool update_current)
+geometry_msgs::msg::PoseStamped LocalWaypointListDriver_ReceiveFSM::get_pose_from_waypoint(iop::InternalElement& element, bool update_current)
 {
 	SetLocalWaypoint wp;
 	wp.decode(element.get_report().getBody()->getElementRec()->getElementData()->getData());
-	auto result = std::make_shared<geometry_msgs::msg::PoseStamped>();
+	auto result = geometry_msgs::msg::PoseStamped();
 	double x, y, z = 0.0;
 	double roll, pitch, yaw = 0.0;
 	SetLocalWaypoint::Body::LocalWaypointRec *wprec = wp.getBody()->getLocalWaypointRec();
@@ -330,13 +333,13 @@ geometry_msgs::msg::PoseStamped::SharedPtr LocalWaypointListDriver_ReceiveFSM::g
 	quat.setRPY(roll, pitch, yaw);
 
 	RCLCPP_DEBUG(logger, "add Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", x, y, z, roll, pitch, yaw);
-	result->pose.position.x = x;
-	result->pose.position.y = y;
-	result->pose.position.z = z;
-	result->pose.orientation.x = quat.x();
-	result->pose.orientation.y = quat.y();
-	result->pose.orientation.z = quat.z();
-	result->pose.orientation.w = quat.w();
+	result.pose.position.x = x;
+	result.pose.position.y = y;
+	result.pose.position.z = z;
+	result.pose.orientation.x = quat.x();
+	result.pose.orientation.y = quat.y();
+	result.pose.orientation.z = quat.z();
+	result.pose.orientation.w = quat.w();
 
 	return result;
 }
