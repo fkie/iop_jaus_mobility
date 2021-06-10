@@ -32,6 +32,7 @@ LocalWaypointDriver_ReceiveFSM::LocalWaypointDriver_ReceiveFSM(std::shared_ptr<i
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
 	p_tf_frame_robot = "base_link";
+	p_tf_frame_target = p_tf_frame_robot;
 	p_current_waypoint.getBody()->getLocalWaypointRec()->setX(0.0);
 	p_current_waypoint.getBody()->getLocalWaypointRec()->setY(0.0);
 	p_current_waypoint.getBody()->getLocalWaypointRec()->setY(0.0);
@@ -80,11 +81,16 @@ void LocalWaypointDriver_ReceiveFSM::setupIopConfiguration()
 		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
 		"TF frame used in ROS for local coordinates. This value is set in each command message.",
 		"Default: 'base_link'");
+	cfg.declare_param<std::string>("tf_frame_target", p_tf_frame_target, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
+		"TF frame used in ROS for local coordinates. Change it if the command should be transformed to a new frame id.",
+		"Default: 'base_link'");
 	cfg.declare_param<double>("tv_max", p_tv_max, true,
 		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
 		"The maximum allowed speed.",
 		"Default: 1.0");
 	cfg.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
+	cfg.param("tf_frame_target", p_tf_frame_target, p_tf_frame_target);
 	cfg.param("tv_max", p_tv_max, p_tv_max);
 
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryLocalWaypoint::ID);
@@ -97,6 +103,10 @@ void LocalWaypointDriver_ReceiveFSM::setupIopConfiguration()
 	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max->publish(ros_msg);
+	if (p_tf_frame_robot.compare(p_tf_frame_target) != 0) {
+		p_tf_buffer = std::make_unique<tf2_ros::Buffer>(cmp->get_clock());
+		p_tf_listener = std::make_shared<tf2_ros::TransformListener>(*p_tf_buffer);
+	}
 }
 
 void LocalWaypointDriver_ReceiveFSM::resetTravelSpeedAction()
@@ -179,7 +189,6 @@ void LocalWaypointDriver_ReceiveFSM::setWaypointAction(SetLocalWaypoint msg, Rec
 	tf2::Quaternion quat;
 	quat.setRPY(roll, pitch, yaw);
 
-	RCLCPP_INFO(logger, "new Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f, frame_id: %s", x, y, z, roll, pitch, yaw, path.header.frame_id.c_str());
 	auto pose = geometry_msgs::msg::PoseStamped();
 	pose.header = path.header;
 	pose.pose.position.x = x;
@@ -189,8 +198,16 @@ void LocalWaypointDriver_ReceiveFSM::setWaypointAction(SetLocalWaypoint msg, Rec
 	pose.pose.orientation.y = quat.y();
 	pose.pose.orientation.z = quat.z();
 	pose.pose.orientation.w = quat.w();
+	if (p_tf_buffer != nullptr) {
+		p_tf_buffer->lookupTransform(p_tf_frame_target, pose.header.frame_id, pose.header.stamp, rclcpp::Duration(0.3));
+		auto pose_out = geometry_msgs::msg::PoseStamped();
+		p_tf_buffer->transform(pose, pose_out, p_tf_frame_target);
+		pose = pose_out;
+	}
 	path.poses.push_back(pose);
+	path.header.frame_id = this->p_tf_frame_target;
 	p_pub_pose->publish(pose);
+	RCLCPP_INFO(logger, "new Waypoint x: %.6f, y: %.6f, z: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f, frame_id: %s", x, y, z, roll, pitch, yaw, path.header.frame_id.c_str());
 	pEvents_ReceiveFSM->get_event_handler().set_report(QueryLocalWaypoint::ID, &p_current_waypoint);
 }
 

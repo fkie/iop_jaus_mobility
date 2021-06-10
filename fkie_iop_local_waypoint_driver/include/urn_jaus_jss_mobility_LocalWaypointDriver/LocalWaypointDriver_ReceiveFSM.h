@@ -26,6 +26,8 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 namespace urn_jaus_jss_mobility_LocalWaypointDriver
 {
@@ -73,7 +75,10 @@ protected:
 	float p_travel_speed;
 	float p_tv_max;
 	std::string p_tf_frame_robot;
+	std::string p_tf_frame_target;
 	ReportLocalWaypoint p_current_waypoint;
+	std::unique_ptr<tf2_ros::Buffer> p_tf_buffer;
+	std::shared_ptr<tf2_ros::TransformListener> p_tf_listener;
 
 	void pStop();
 	void pRosFinished(const std_msgs::msg::Bool::SharedPtr state);

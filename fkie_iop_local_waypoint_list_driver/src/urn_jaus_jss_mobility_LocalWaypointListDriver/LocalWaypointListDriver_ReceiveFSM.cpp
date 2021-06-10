@@ -83,11 +83,16 @@ void LocalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
 		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
 		"TF frame used in ROS for local coordinates. This value is set in each command message.",
 		"Default: 'base_link'");
+	cfg.declare_param<std::string>("tf_frame_target", p_tf_frame_target, true,
+		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
+		"TF frame used in ROS for local coordinates. Change it if the command should be transformed to a new frame id.",
+		"Default: 'base_link'");
 	cfg.declare_param<double>("tv_max", p_tv_max, true,
 		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
 		"The maximum allowed speed.",
 		"Default: 1.0");
 	cfg.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
+	cfg.param("tf_frame_target", p_tf_frame_target, p_tf_frame_target);
 	cfg.param("tv_max", p_tv_max, p_tv_max);
 
 	pEvents_ReceiveFSM->get_event_handler().register_query(QueryActiveElement::ID);
@@ -102,6 +107,10 @@ void LocalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
 	auto ros_msg = std_msgs::msg::Float32();
 	ros_msg.data = p_travel_speed;
 	p_pub_tv_max->publish(ros_msg);
+	if (p_tf_frame_robot.compare(p_tf_frame_target) != 0) {
+		p_tf_buffer = std::make_unique<tf2_ros::Buffer>(cmp->get_clock());
+		p_tf_listener = std::make_shared<tf2_ros::TransformListener>(*p_tf_buffer);
+	}
 }
 
 void LocalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList msg, Receive::Body::ReceiveRec transportData)
@@ -241,6 +250,12 @@ void LocalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::InternalE
 	for (it = elements.begin(); it != elements.end(); ++it) {
 		geometry_msgs::msg::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
 		pose.header = path.header;
+		if (p_tf_buffer != nullptr) {
+			p_tf_buffer->lookupTransform(p_tf_frame_target, pose.header.frame_id, pose.header.stamp, rclcpp::Duration(0.3));
+			auto pose_out = geometry_msgs::msg::PoseStamped();
+			p_tf_buffer->transform(pose, pose_out, p_tf_frame_target);
+			pose = pose_out;
+		}
 		if (it == elements.begin()) {
 			pListManager_ReceiveFSM->list_manager().set_current_element(it->get_uid());
 			p_current_element.getBody()->getActiveElementRec()->setElementUID(it->get_uid());
@@ -251,6 +266,7 @@ void LocalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::InternalE
 		path.poses.push_back(pose);
 		p_last_uid = it->get_uid();
 	}
+	path.header.frame_id = p_tf_frame_target;
 	RCLCPP_INFO(logger, "publish command path with %d waypoints", path.poses.size());
 	p_pub_path->publish(path);
 }

@@ -31,7 +31,7 @@ GlobalWaypointDriver_ReceiveFSM::GlobalWaypointDriver_ReceiveFSM(std::shared_ptr
 	this->cmp = cmp;
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
-	p_tf_frame_world = "/world";
+	p_tf_frame_world = "world";
 	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLatitude(-90.0);
 	p_current_waypoint.getBody()->getGlobalWaypointRec()->setLongitude(-180.0);
 }
@@ -79,7 +79,7 @@ void GlobalWaypointDriver_ReceiveFSM::setupIopConfiguration()
 	cfg.declare_param<std::string>("tf_frame_world", p_tf_frame_world, true,
 		rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
 		"TF frame used in ROS for global coordinates. This value is set in each command message.",
-		"Default: '/world'");
+		"Default: 'world'");
 	cfg.declare_param<double>("tv_max", p_tv_max, true,
 		rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
 		"The maximum allowed speed.",

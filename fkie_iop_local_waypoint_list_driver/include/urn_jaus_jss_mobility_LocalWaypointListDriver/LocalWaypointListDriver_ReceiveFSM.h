@@ -27,6 +27,8 @@
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/float32.hpp>
 #include <std_msgs/msg/bool.hpp>
+#include <tf2_ros/transform_listener.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <fkie_iop_list_manager/ListManagerListenerInterface.h>
 
@@ -81,10 +83,13 @@ protected:
 	float p_travel_speed;
 	float p_tv_max;
 	std::string p_tf_frame_robot;
+	std::string p_tf_frame_target;
 	ReportLocalWaypoint p_current_waypoint;
 	ReportActiveElement p_current_element;
 	bool p_executing;
 	jUnsignedShortInteger p_last_uid;
+	std::unique_ptr<tf2_ros::Buffer> p_tf_buffer;
+	std::shared_ptr<tf2_ros::TransformListener> p_tf_listener;
 
 	void pRosFinished(const std_msgs::msg::Bool::SharedPtr state);
 	geometry_msgs::msg::PoseStamped get_pose_from_waypoint(iop::InternalElement& element, bool update_current=false);

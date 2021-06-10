@@ -18,7 +18,7 @@
         <param name="iop_address" value="$(arg id_subsystem).$(arg id_node).33"/>
         <param name="enable_ros_interface" value="false"/>
         <param name="tv_max" value="1.0"/>
-        <remap from="tf_frame_world" to="/world"/>
+        <remap from="tf_frame_world" to="world"/>
     </node>
   </group>
 </launch>

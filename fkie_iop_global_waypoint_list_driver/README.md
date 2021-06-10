@@ -7,7 +7,7 @@ Forwards the list of global waypoints to ROS.
 
 #### Parameter:
 
-_tf_frame_world (str_, Default: "/world")
+_tf_frame_world (str_, Default: "world")
 
 > TF frame used in ROS for global coordinates. This value is set in each command message.
 
