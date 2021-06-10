@@ -34,6 +34,7 @@ LocalWaypointListDriver_ReceiveFSM::LocalWaypointListDriver_ReceiveFSM(std::shar
 	p_travel_speed = 0.0;
 	p_tv_max = 1.0;
 	p_tf_frame_robot = "base_link";
+	p_tf_frame_target = p_tf_frame_robot;
 	p_executing = false;
 	p_last_uid = 0;
 	p_current_waypoint.getBody()->getLocalWaypointRec()->setX(0);
