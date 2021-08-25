@@ -323,7 +323,7 @@ geometry_msgs::PoseStamped GlobalWaypointListDriver_ReceiveFSM::get_pose_from_wa
 	tf::Quaternion quat = tf::createQuaternionFromRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint as pose easting: %.6f, northing: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", easting, northing, alt, roll, pitch, yaw);
 		result.pose.position.x = easting;
 		result.pose.position.y = northing;
 		result.pose.position.z = alt;
@@ -380,7 +380,7 @@ geographic_msgs::GeoPoseStamped GlobalWaypointListDriver_ReceiveFSM::get_geopose
 	tf::Quaternion quat = tf::createQuaternionFromRPY(roll, pitch, yaw);
 
 	if (lat > -90.0 && lon > -180.0) {
-		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
+		ROS_DEBUG_NAMED("GlobalWaypointListDriver", "add Waypoint as geopose lat: %.6f, lon: %.6f, alt: %.2f, roll: %.2f, pitch: %.2f, yaw: %.2f", lat, lon, alt, roll, pitch, yaw);
 		result.pose.position.latitude = lat;
 		result.pose.position.longitude = lon;
 		result.pose.position.altitude = alt;
