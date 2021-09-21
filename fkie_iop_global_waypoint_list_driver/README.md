@@ -29,6 +29,10 @@ _cmd_travel_speed (std_msgs::Float32)_, latched
 
 > The maximum speed configured by parameter or send from OCU. Speed from OCU is always smaller or equal to parameterized value.
 
+_cmd_global_execute (std_msgs::Bool)_
+
+> Sends True after waypoints are published.
+
 #### Subscriber:
 
 _global_way_points_finished (std_msgs::Bool)_

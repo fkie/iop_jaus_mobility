@@ -73,6 +73,7 @@ protected:
 
 	ros::Publisher p_pub_path;
 	ros::Publisher p_pub_tv_max;
+	ros::Publisher p_pub_execute;
 	ros::Subscriber p_sub_finished;
 	ros::Publisher p_pub_geopath;
 	float p_travel_speed;

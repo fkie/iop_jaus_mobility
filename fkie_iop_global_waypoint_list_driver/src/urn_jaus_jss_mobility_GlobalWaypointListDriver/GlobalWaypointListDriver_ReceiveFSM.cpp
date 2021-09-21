@@ -84,6 +84,7 @@ void GlobalWaypointListDriver_ReceiveFSM::setupNotifications()
 	p_pub_path = cfg.advertise<nav_msgs::Path>("cmd_global_waypoints", 5);
 	p_pub_geopath = cfg.advertise<geographic_msgs::GeoPath>("cmd_global_geopath", 5);
 	p_pub_tv_max = cfg.advertise<std_msgs::Float32>("cmd_travel_speed", 5);
+	p_pub_execute = cfg.advertise<std_msgs::Bool>("cmd_global_execute", 5);
 	p_sub_finished = cfg.subscribe<std_msgs::Bool>("global_way_points_finished", 5, &GlobalWaypointListDriver_ReceiveFSM::pRosFinished, this);
 	std_msgs::Float32 ros_msg;
 	ros_msg.data = p_travel_speed;
@@ -102,6 +103,10 @@ void GlobalWaypointListDriver_ReceiveFSM::executeWaypointListAction(ExecuteList 
 		reject.getBody()->getRejectElementRec()->setRequestID(0);
 		reject.getBody()->getRejectElementRec()->setResponseCode(pListManager_ReceiveFSM->list_manager().get_error_code());
 		sendJausMessage(reject, sender);
+	} else {
+		std_msgs::Bool msg_exec;
+		msg_exec.data = true;
+		p_pub_execute.publish(msg_exec);
 	}
 }
 
