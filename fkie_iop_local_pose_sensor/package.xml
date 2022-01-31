@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>fkie_iop_local_pose_sensor</name>
-  <version>1.1.0</version>
+  <version>2.1.0</version>
   <description>Translation of the local position sensor service functionality to/from ROS</description>
 
   <author>Alexander Tiderko</author>

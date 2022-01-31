@@ -199,7 +199,7 @@ void LocalWaypointDriver_ReceiveFSM::setWaypointAction(SetLocalWaypoint msg, Rec
 	pose.pose.orientation.z = quat.z();
 	pose.pose.orientation.w = quat.w();
 	if (p_tf_buffer != nullptr) {
-		p_tf_buffer->lookupTransform(p_tf_frame_target, pose.header.frame_id, pose.header.stamp, rclcpp::Duration(0.3));
+		p_tf_buffer->lookupTransform(p_tf_frame_target, pose.header.frame_id, pose.header.stamp, rclcpp::Duration::from_seconds(0.3));
 		auto pose_out = geometry_msgs::msg::PoseStamped();
 		p_tf_buffer->transform(pose, pose_out, p_tf_frame_target);
 		pose = pose_out;

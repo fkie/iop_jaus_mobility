@@ -252,7 +252,7 @@ void LocalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::InternalE
 		geometry_msgs::msg::PoseStamped pose = get_pose_from_waypoint(*it, it == elements.begin());
 		pose.header = path.header;
 		if (p_tf_buffer != nullptr) {
-			p_tf_buffer->lookupTransform(p_tf_frame_target, pose.header.frame_id, pose.header.stamp, rclcpp::Duration(0.3));
+			p_tf_buffer->lookupTransform(p_tf_frame_target, pose.header.frame_id, pose.header.stamp, rclcpp::Duration::from_seconds(0.3));
 			auto pose_out = geometry_msgs::msg::PoseStamped();
 			p_tf_buffer->transform(pose, pose_out, p_tf_frame_target);
 			pose = pose_out;
@@ -268,7 +268,7 @@ void LocalWaypointListDriver_ReceiveFSM::execute_list(std::vector<iop::InternalE
 		p_last_uid = it->get_uid();
 	}
 	path.header.frame_id = p_tf_frame_target;
-	RCLCPP_INFO(logger, "publish command path with %d waypoints", path.poses.size());
+	RCLCPP_INFO(logger, "publish command path with %ld waypoints", path.poses.size());
 	p_pub_path->publish(path);
 }
 
