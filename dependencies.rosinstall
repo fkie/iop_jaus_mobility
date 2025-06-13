@@ -1,10 +1,10 @@
 - git:
     local-name: iop_msgs
     uri: https://github.com/fkie/iop_msgs
-    version: ros2
+    version: humble
 
 - git:
     local-name: iop_core
     uri: https://github.com/fkie/iop_core
-    version: ros2
+    version: humble
 
