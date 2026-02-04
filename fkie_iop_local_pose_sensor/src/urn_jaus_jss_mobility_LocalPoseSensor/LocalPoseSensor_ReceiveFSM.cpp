@@ -20,7 +20,6 @@ along with this program; or you can read the full license at
 
 /** \author Alexander Tiderko */
 
-
 #include "urn_jaus_jss_mobility_LocalPoseSensor/LocalPoseSensor_ReceiveFSM.h"
 #include <fkie_iop_component/iop_config.hpp>
 
@@ -165,7 +164,7 @@ void LocalPoseSensor_ReceiveFSM::tfCallback()
 			m.getRPY(roll, pitch, yaw);
 			p_report_local_pose.getBody()->getLocalPoseRec()->setRoll(roll);
 			p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
-			p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
+			p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw * -1.0);
 		} catch (const std::exception& e) {
 			RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 		}
@@ -200,7 +199,7 @@ void LocalPoseSensor_ReceiveFSM::poseReceived(const geometry_msgs::msg::PoseStam
 		m.getRPY(roll, pitch, yaw);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setRoll(roll);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
-		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
+		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw * -1.0);
 	} catch (const std::exception& e) {
 		RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 	}
@@ -231,7 +230,7 @@ void LocalPoseSensor_ReceiveFSM::odomReceived(const nav_msgs::msg::Odometry::Sha
 		m.getRPY(roll, pitch, yaw);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setRoll(roll);
 		p_report_local_pose.getBody()->getLocalPoseRec()->setPitch(pitch);
-		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw);
+		p_report_local_pose.getBody()->getLocalPoseRec()->setYaw(yaw * -1.0);
 	} catch (const std::exception& e) {
 		RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
 	}
