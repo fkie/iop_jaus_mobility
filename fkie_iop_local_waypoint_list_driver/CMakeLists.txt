@@ -71,13 +71,22 @@ set(dependencies
 
 include_directories(
   ${IOP_COMPONENT_INCLUDE_DIRS}
+  ${fkie_iop_list_manager_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME} SHARED
             ${cppfiles}
 )
 
-ament_target_dependencies(${PROJECT_NAME} ${dependencies})
+add_library(${PROJECT_NAME}::${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+target_link_libraries(${PROJECT_NAME} PUBLIC
+  ${geometry_msgs_TARGETS}
+  ${nav_msgs_TARGETS}
+  ${tf2_TARGETS}
+  ${tf2_geometry_msgs_TARGETS}
+  ${tf2_ros_TARGETS}
+  fkie_iop_list_manager::fkie_iop_list_manager
+)
 
 #############
 ## Install ##
@@ -90,13 +99,23 @@ install(
   PATTERN "*.gen" EXCLUDE
 )
 
-install(TARGETS ${PROJECT_NAME}
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}Targets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
-ament_export_include_directories(include ${IOP_COMPONENT_INCLUDE_DIRS})
+install(
+  EXPORT ${PROJECT_NAME}Targets
+  FILE ${PROJECT_NAME}Targets.cmake
+  NAMESPACE ${PROJECT_NAME}::
+  DESTINATION share/${PROJECT_NAME}/cmake
+)
+ament_export_targets(${PROJECT_NAME}Targets HAS_LIBRARY_TARGET)
+
+ament_export_include_directories(include ${IOP_COMPONENT_INCLUDE_DIRS} ${fkie_iop_list_manager_INCLUDE_DIRS})
 ament_export_libraries(${PROJECT_NAME})
 ament_export_dependencies(${dependencies})
 pluginlib_export_plugin_description_file(fkie_iop_component plugin_iop.xml)
