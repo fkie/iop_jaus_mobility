@@ -2,8 +2,8 @@
 
 #include "urn_jaus_jss_mobility_LocalWaypointListDriver/LocalWaypointListDriver_ReceiveFSM.h"
 #include <fkie_iop_component/iop_config.hpp>
-#include <tf2/LinearMath/Quaternion.h>
-#include <tf2/LinearMath/Matrix3x3.h>
+#include <tf2/LinearMath/Quaternion.hpp>
+#include <tf2/LinearMath/Matrix3x3.hpp>
 
 
 
