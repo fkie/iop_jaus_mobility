@@ -6,5 +6,5 @@
 - git:
     local-name: iop_core
     uri: https://github.com/fkie/iop_core
-    version: ros2
+    version: ros2_iop6
 

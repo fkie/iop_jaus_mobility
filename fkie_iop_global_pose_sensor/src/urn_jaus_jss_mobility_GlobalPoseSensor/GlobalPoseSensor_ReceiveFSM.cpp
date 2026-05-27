@@ -21,137 +21,158 @@ along with this program; or you can read the full license at
 /** \author Alexander Tiderko */
 
 #include "urn_jaus_jss_mobility_GlobalPoseSensor/GlobalPoseSensor_ReceiveFSM.h"
-#include <fkie_iop_component/iop_config.hpp>
 #include <cmath>
-#include <tf2/LinearMath/Quaternion.hpp>
-#include <tf2/LinearMath/Matrix3x3.hpp>
 #include <ctime>
-
+#include <fkie_iop_component/iop_config.hpp>
+#include <tf2/LinearMath/Matrix3x3.hpp>
+#include <tf2/LinearMath/Quaternion.hpp>
 
 using namespace JTS;
 
-namespace urn_jaus_jss_mobility_GlobalPoseSensor
-{
-
-
+namespace urn_jaus_jss_mobility_GlobalPoseSensor {
 
 GlobalPoseSensor_ReceiveFSM::GlobalPoseSensor_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM)
-: logger(cmp->get_logger().get_child("GlobalPoseSensor"))
+    : logger(cmp->get_logger().get_child("GlobalPoseSensor"))
 {
 
-	/*
-	 * If there are other variables, context must be constructed last so that all
-	 * class variables are available if an EntryAction of the InitialState of the
-	 * statemachine needs them.
-	 */
-	context = new GlobalPoseSensor_ReceiveFSMContext(*this);
+    /*
+     * If there are other variables, context must be constructed last so that all
+     * class variables are available if an EntryAction of the InitialState of the
+     * statemachine needs them.
+     */
+    context = new GlobalPoseSensor_ReceiveFSMContext(*this);
 
-	this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
-	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
-	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
-	this->cmp = cmp;
-	this->p_is_ori_valid = false;
-	p_yaw = NAN;
-	p_pitch = NAN;
-	p_roll = NAN;
+    this->pAccessControl_ReceiveFSM = pAccessControl_ReceiveFSM;
+    this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
+    this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
+    this->cmp = cmp;
+    this->p_is_ori_valid = false;
+    p_yaw = NAN;
+    p_pitch = NAN;
+    p_roll = NAN;
 }
-
-
 
 GlobalPoseSensor_ReceiveFSM::~GlobalPoseSensor_ReceiveFSM()
 {
-	delete context;
+    delete context;
 }
 
 void GlobalPoseSensor_ReceiveFSM::setupNotifications()
 {
-	pAccessControl_ReceiveFSM->registerNotification("Receiving_Ready_NotControlled", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_NotControlled", "AccessControl_ReceiveFSM");
-	pAccessControl_ReceiveFSM->registerNotification("Receiving_Ready_Controlled", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_Controlled", "AccessControl_ReceiveFSM");
-	pAccessControl_ReceiveFSM->registerNotification("Receiving_Ready", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_NotControlled", "AccessControl_ReceiveFSM");
-	pAccessControl_ReceiveFSM->registerNotification("Receiving", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_NotControlled", "AccessControl_ReceiveFSM");
-	registerNotification("Receiving_Ready_NotControlled", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_NotControlled", "GlobalPoseSensor_ReceiveFSM");
-	registerNotification("Receiving_Ready_Controlled", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_Controlled", "GlobalPoseSensor_ReceiveFSM");
-	registerNotification("Receiving_Ready", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready", "GlobalPoseSensor_ReceiveFSM");
-	registerNotification("Receiving", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving", "GlobalPoseSensor_ReceiveFSM");
+    pAccessControl_ReceiveFSM->registerNotification("Receiving_Ready_NotControlled", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_NotControlled_Available", "AccessControl_ReceiveFSM");
+    pAccessControl_ReceiveFSM->registerNotification("Receiving_Ready_Controlled", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_Controlled_Available", "AccessControl_ReceiveFSM");
+    pAccessControl_ReceiveFSM->registerNotification("Receiving_Ready", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_NotControlled_Available", "AccessControl_ReceiveFSM");
+    pAccessControl_ReceiveFSM->registerNotification("Receiving", ieHandler, "InternalStateChange_To_GlobalPoseSensor_ReceiveFSM_Receiving_Ready_NotControlled_Available", "AccessControl_ReceiveFSM");
+    registerNotification("Receiving_Ready_NotControlled_Available", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_NotControlled", "GlobalPoseSensor_ReceiveFSM");
+    registerNotification("Receiving_Ready_NotControlled_NotAvailable", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_NotControlled", "GlobalPoseSensor_ReceiveFSM");
+    registerNotification("Receiving_Ready_NotControlled", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_NotControlled", "GlobalPoseSensor_ReceiveFSM");
+    registerNotification("Receiving_Ready_Controlled_Available", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_Controlled", "GlobalPoseSensor_ReceiveFSM");
+    registerNotification("Receiving_Ready_Controlled_NotAvailable", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_Controlled", "GlobalPoseSensor_ReceiveFSM");
+    registerNotification("Receiving_Ready_Controlled", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready_Controlled", "GlobalPoseSensor_ReceiveFSM");
+    registerNotification("Receiving_Ready", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving_Ready", "GlobalPoseSensor_ReceiveFSM");
+    registerNotification("Receiving", pAccessControl_ReceiveFSM->getHandler(), "InternalStateChange_To_AccessControl_ReceiveFSM_Receiving", "GlobalPoseSensor_ReceiveFSM");
 }
-
 
 void GlobalPoseSensor_ReceiveFSM::setupIopConfiguration()
 {
-	iop::Config cfg(cmp, "GlobalPoseSensor");
-	p_navsatfix_sub = cfg.create_subscription<sensor_msgs::msg::NavSatFix>("fix", 1, std::bind(&GlobalPoseSensor_ReceiveFSM::fixReceived, this, std::placeholders::_1));
-	p_imu_sub = cfg.create_subscription<sensor_msgs::msg::Imu>("imu", 1, std::bind(&GlobalPoseSensor_ReceiveFSM::imuReceived, this, std::placeholders::_1));
-	pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalPose::ID);
+    iop::Config cfg(cmp, "GlobalPoseSensor");
+    p_navsatfix_sub = cfg.create_subscription<sensor_msgs::msg::NavSatFix>("fix", 1, std::bind(&GlobalPoseSensor_ReceiveFSM::fixReceived, this, std::placeholders::_1));
+    p_imu_sub = cfg.create_subscription<sensor_msgs::msg::Imu>("imu", 1, std::bind(&GlobalPoseSensor_ReceiveFSM::imuReceived, this, std::placeholders::_1));
+    pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalPose::ID);
+    pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalPoseExt::ID);
 }
 
-void GlobalPoseSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
+void GlobalPoseSensor_ReceiveFSM::sendReportGeomagneticPropertyAction(QueryGeomagneticProperty msg, Receive::Body::ReceiveRec transportData)
 {
-	/// Insert User Code HERE
-	RCLCPP_DEBUG(logger, "request %s from %d.%d.%d", arg0.c_str(),
-			  transportData.getSrcSubsystemID(), transportData.getSrcNodeID(), transportData.getSrcComponentID());
-	JausAddress sender = JausAddress(transportData.getSrcSubsystemID(),
-									 transportData.getSrcNodeID(),
-									 transportData.getSrcComponentID());
-	if (strcmp(arg0.c_str(), "ReportGlobalPose") == 0) {
-	  this->sendJausMessage(p_report_global_pose, sender);
-	} else if (strcmp(arg0.c_str(), "ReportGeomagneticProperty") == 0) {
-	}
+    /// Insert User Code HERE
 }
 
-void GlobalPoseSensor_ReceiveFSM::updateGeomagneticPropertyAction()
+void GlobalPoseSensor_ReceiveFSM::sendReportGlobalPoseAction(QueryGlobalPose msg, Receive::Body::ReceiveRec transportData)
 {
-	/// Insert User Code HERE
+    JausAddress sender = transportData.getAddress();
+    RCLCPP_DEBUG(logger, "request global pose from %s", sender.str().c_str());
+    this->sendJausMessage(p_report_global_pose, sender);
 }
 
-void GlobalPoseSensor_ReceiveFSM::updateGlobalPoseAction()
+void GlobalPoseSensor_ReceiveFSM::sendReportGlobalPoseExtAction(QueryGlobalPoseExt msg, Receive::Body::ReceiveRec transportData)
 {
-	/// Insert User Code HERE
+    JausAddress sender = transportData.getAddress();
+    RCLCPP_DEBUG(logger, "request global pose ext from %s", sender.str().c_str());
+    this->sendJausMessage(p_report_global_pose_ext, sender);
 }
 
+void GlobalPoseSensor_ReceiveFSM::updateGeomagneticPropertyAction(SetGeomagneticProperty msg, Receive::Body::ReceiveRec transportData)
+{
+    /// Insert User Code HERE
+}
 
+void GlobalPoseSensor_ReceiveFSM::updateGlobalPoseAction(SetGlobalPose msg, Receive::Body::ReceiveRec transportData)
+{
+    /// Insert User Code HERE
+}
+
+void GlobalPoseSensor_ReceiveFSM::updateGlobalPoseExtAction(SetGlobalPoseExt msg, Receive::Body::ReceiveRec transportData)
+{
+    /// Insert User Code HERE
+}
 
 bool GlobalPoseSensor_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
 {
-	//// By default, inherited guards call the parent function.
-	//// This can be replaced or modified as needed.
-	return pAccessControl_ReceiveFSM->isControllingClient(transportData );
+    //// By default, inherited guards call the parent function.
+    //// This can be replaced or modified as needed.
+    return pAccessControl_ReceiveFSM->isControllingClient(transportData);
 }
 
 void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::msg::NavSatFix::SharedPtr fix)
 {
-	if (fix->status.status != -1) {
-		p_report_global_pose.getBody()->getGlobalPoseRec()->setLatitude(fix->latitude);
-		p_report_global_pose.getBody()->getGlobalPoseRec()->setLongitude(fix->longitude);
-		p_report_global_pose.getBody()->getGlobalPoseRec()->setAltitude(fix->altitude);
-		if (p_is_ori_valid) {
-			p_report_global_pose.getBody()->getGlobalPoseRec()->setYaw(p_yaw);
-			p_report_global_pose.getBody()->getGlobalPoseRec()->setPitch(p_pitch);
-			p_report_global_pose.getBody()->getGlobalPoseRec()->setRoll(p_roll);
-		}
-		// set timestamp
-		ReportGlobalPose::Body::GlobalPoseRec::TimeStamp ts;
-		// current date/time based on current system
-		iop::Timestamp stamp = cmp->from_ros(fix->header.stamp);
-		ts.setDay(stamp.days);
-		ts.setHour(stamp.hours);
-		ts.setMinutes(stamp.minutes);
-		ts.setSeconds(stamp.seconds);
-		ts.setMilliseconds(stamp.milliseconds);
-		p_report_global_pose.getBody()->getGlobalPoseRec()->setTimeStamp(ts);
+    if (fix->status.status != -1) {
+        p_report_global_pose.getBody()->getGlobalPoseRec()->setLatitude(fix->latitude);
+        p_report_global_pose.getBody()->getGlobalPoseRec()->setLongitude(fix->longitude);
+        p_report_global_pose.getBody()->getGlobalPoseRec()->setAltitude(fix->altitude);
+        if (p_is_ori_valid) {
+            p_report_global_pose.getBody()->getGlobalPoseRec()->setYaw(p_yaw);
+            p_report_global_pose.getBody()->getGlobalPoseRec()->setPitch(p_pitch);
+            p_report_global_pose.getBody()->getGlobalPoseRec()->setRoll(p_roll);
+        }
+        // set timestamp
+        ReportGlobalPose::Body::GlobalPoseRec::TimeStamp ts;
+        // current date/time based on current system
+        iop::Timestamp stamp = cmp->from_ros(fix->header.stamp);
+        ts.setDay(stamp.days);
+        ts.setHour(stamp.hours);
+        ts.setMinutes(stamp.minutes);
+        ts.setSeconds(stamp.seconds);
+        ts.setMilliseconds(stamp.milliseconds);
+        p_report_global_pose.getBody()->getGlobalPoseRec()->setTimeStamp(ts);
 		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalPose::ID, &p_report_global_pose);
+
+		// create ext
+        p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setLatitude(fix->latitude);
+        p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setLongitude(fix->longitude);
+        p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setAltitudeMSL(fix->altitude);
+        if (p_is_ori_valid) {
+            p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setHeading(p_yaw);
+            p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setPitch(p_pitch);
+            p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setRoll(p_roll);
+        }
+        // set timestamp
+        p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setTimeSeconds(fix->header.stamp.sec);
+		p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setTimeNanoSeconds(fix->header.stamp.nanosec);
+        pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalPoseExt::ID, &p_report_global_pose_ext);
+
 	}
 }
 
 void GlobalPoseSensor_ReceiveFSM::imuReceived(const sensor_msgs::msg::Imu::SharedPtr imu)
 {
-	try {
-		tf2::Quaternion q(imu->orientation.x, imu->orientation.y, imu->orientation.z, imu->orientation.w);
-		tf2::Matrix3x3 m(q);
-		m.getRPY(p_roll, p_pitch, p_yaw);
-		p_is_ori_valid = true;
-	} catch (const std::exception& e) {
-		RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
-	}
+    try {
+        tf2::Quaternion q(imu->orientation.x, imu->orientation.y, imu->orientation.z, imu->orientation.w);
+        tf2::Matrix3x3 m(q);
+        m.getRPY(p_roll, p_pitch, p_yaw);
+        p_is_ori_valid = true;
+    } catch (const std::exception& e) {
+        RCLCPP_WARN(logger, "Error while get yaw, pitch, roll from quaternion: %s", e.what());
+    }
 }
 
 }
