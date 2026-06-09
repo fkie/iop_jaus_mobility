@@ -20,84 +20,75 @@ along with this program; or you can read the full license at
 
 /** \author Alexander Tiderko */
 
-
 #ifndef PRIMITIVEDRIVER_RECEIVEFSM_H
 #define PRIMITIVEDRIVER_RECEIVEFSM_H
 
-#include "JausUtils.h"
 #include "InternalEvents/InternalEventHandler.h"
-#include "Transport/JausTransport.h"
 #include "JTSStateMachine.h"
-#include "urn_jaus_jss_mobility_PrimitiveDriver/Messages/MessageSet.h"
+#include "JausUtils.h"
+#include "Transport/JausTransport.h"
 #include "urn_jaus_jss_mobility_PrimitiveDriver/InternalEvents/InternalEventsSet.h"
+#include "urn_jaus_jss_mobility_PrimitiveDriver/Messages/MessageSet.h"
 
 #include "InternalEvents/Receive.h"
 #include "InternalEvents/Send.h"
 
-#include "urn_jaus_jss_core_Management/Management_ReceiveFSM.h"
 #include "urn_jaus_jss_core_AccessControl/AccessControl_ReceiveFSM.h"
 #include "urn_jaus_jss_core_Events/Events_ReceiveFSM.h"
+#include "urn_jaus_jss_core_Management/Management_ReceiveFSM.h"
 #include "urn_jaus_jss_core_Transport/Transport_ReceiveFSM.h"
 
-
 #include "PrimitiveDriver_ReceiveFSM_sm.h"
-#include <rclcpp/rclcpp.hpp>
 #include <fkie_iop_component/iop_component.hpp>
-#include <nav_msgs/msg/odometry.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <geometry_msgs/msg/twist_stamped.hpp>
-
+#include <nav_msgs/msg/odometry.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include "PrimitiveDriver_ReceiveFSM_sm.h"
 
-namespace urn_jaus_jss_mobility_PrimitiveDriver
-{
+namespace urn_jaus_jss_mobility_PrimitiveDriver {
 
-class DllExport PrimitiveDriver_ReceiveFSM : public JTS::StateMachine
-{
+class DllExport PrimitiveDriver_ReceiveFSM : public JTS::StateMachine {
 public:
-	PrimitiveDriver_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM);
-	virtual ~PrimitiveDriver_ReceiveFSM();
+    PrimitiveDriver_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM, urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM);
+    virtual ~PrimitiveDriver_ReceiveFSM();
 
-	/// Handle notifications on parent state changes
-	virtual void setupNotifications();
-	virtual void setupIopConfiguration();
+    /// Handle notifications on parent state changes
+    virtual void setupNotifications();
+    virtual void setupIopConfiguration();
 
-	/// Action Methods
-	virtual void sendReportWrenchEffortAction(QueryWrenchEffort msg, Receive::Body::ReceiveRec transportData);
-	virtual void setWrenchEffortAction(SetWrenchEffort msg, Receive::Body::ReceiveRec transportData);
-	virtual void stopMotionAction();
+    /// Action Methods
+    virtual void resetTravelSpeedAction();
+    virtual void sendReportWrenchEffortAction(QueryWrenchEffort msg, Receive::Body::ReceiveRec transportData);
+    virtual void setWrenchEffortAction(SetWrenchEffort msg);
 
+    /// Guard Methods
+    virtual bool isControllingClient(Receive::Body::ReceiveRec transportData);
 
-	/// Guard Methods
-	virtual bool isControllingClient(Receive::Body::ReceiveRec transportData);
-
-
-
-	PrimitiveDriver_ReceiveFSMContext *context;
+    PrimitiveDriver_ReceiveFSMContext* context;
 
 protected:
+    /// References to parent FSMs
+    urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM;
+    urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
+    urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
+    urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
 
-	/// References to parent FSMs
-	urn_jaus_jss_core_Management::Management_ReceiveFSM* pManagement_ReceiveFSM;
-	urn_jaus_jss_core_AccessControl::AccessControl_ReceiveFSM* pAccessControl_ReceiveFSM;
-	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
-	urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
+    std::shared_ptr<iop::Component> cmp;
+    rclcpp::Logger logger;
+    //	rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+    rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_pub_;
+    rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_stamped_pub_;
+    ReportWrenchEffort::Body::WrenchEffortRec current_wrench_effort_;
+    double max_linear_x;
+    double max_linear_y;
+    double max_linear_z;
+    double max_angular_x;
+    double max_angular_y;
+    double max_angular_z;
 
-	std::shared_ptr<iop::Component> cmp;
-	rclcpp::Logger logger;
-//	rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-	rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr cmd_pub_;
-	rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr cmd_stamped_pub_;
-	ReportWrenchEffort::Body::WrenchEffortRec current_wrench_effort_;
-	double max_linear_x;
-	double max_linear_y;
-	double max_linear_z;
-	double max_angular_x;
-	double max_angular_y;
-	double max_angular_z;
-
-	void odomReceived(const nav_msgs::msg::Odometry::SharedPtr odom);
+    void odomReceived(const nav_msgs::msg::Odometry::SharedPtr odom);
 };
 
 }

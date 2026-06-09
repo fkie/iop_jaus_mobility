@@ -1,5 +1,5 @@
 <library path="fkie_iop_global_waypoint_driver">
 	<class name="GlobalWaypointDriver" type="urn_jaus_jss_mobility_GlobalWaypointDriver::GlobalWaypointDriverService" base_class_type="JTS::Service"
-		id="urn:jaus:jss:mobility:GlobalWaypointDriver" version="1.0">
+		id="urn:jaus:jss:mobility:GlobalWaypointDriver" version="1.1">
 	</class>
 </library>

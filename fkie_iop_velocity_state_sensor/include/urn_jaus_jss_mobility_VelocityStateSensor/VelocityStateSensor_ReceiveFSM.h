@@ -23,12 +23,12 @@ along with this program; or you can read the full license at
 #ifndef VELOCITYSTATESENSOR_RECEIVEFSM_H
 #define VELOCITYSTATESENSOR_RECEIVEFSM_H
 
-#include "JausUtils.h"
 #include "InternalEvents/InternalEventHandler.h"
-#include "Transport/JausTransport.h"
 #include "JTSStateMachine.h"
-#include "urn_jaus_jss_mobility_VelocityStateSensor/Messages/MessageSet.h"
+#include "JausUtils.h"
+#include "Transport/JausTransport.h"
 #include "urn_jaus_jss_mobility_VelocityStateSensor/InternalEvents/InternalEventsSet.h"
+#include "urn_jaus_jss_mobility_VelocityStateSensor/Messages/MessageSet.h"
 
 #include "InternalEvents/Receive.h"
 #include "InternalEvents/Send.h"
@@ -36,49 +36,42 @@ along with this program; or you can read the full license at
 #include "urn_jaus_jss_core_Events/Events_ReceiveFSM.h"
 #include "urn_jaus_jss_core_Transport/Transport_ReceiveFSM.h"
 
-
 #include "VelocityStateSensor_ReceiveFSM_sm.h"
-#include <rclcpp/rclcpp.hpp>
 #include <fkie_iop_component/iop_component.hpp>
+#include <rclcpp/rclcpp.hpp>
 
 #include <nav_msgs/msg/odometry.hpp>
 
+namespace urn_jaus_jss_mobility_VelocityStateSensor {
 
-namespace urn_jaus_jss_mobility_VelocityStateSensor
-{
-	
-class DllExport VelocityStateSensor_ReceiveFSM : public JTS::StateMachine
-{
+class DllExport VelocityStateSensor_ReceiveFSM : public JTS::StateMachine {
 public:
-	VelocityStateSensor_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM);
-	virtual ~VelocityStateSensor_ReceiveFSM();
+    VelocityStateSensor_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM);
+    virtual ~VelocityStateSensor_ReceiveFSM();
 
-	/// Handle notifications on parent state changes
-	virtual void setupNotifications();
-	virtual void setupIopConfiguration();
+    /// Handle notifications on parent state changes
+    virtual void setupNotifications();
+    virtual void setupIopConfiguration();
 
-	/// Action Methods
-	virtual void SendAction(std::string arg0, Receive::Body::ReceiveRec transportData);
+    /// Action Methods
+    virtual void sendReportVelocityStateAction(QueryVelocityState msg, Receive::Body::ReceiveRec transportData);
+    virtual void sendReportVelocityStateExtAction(QueryVelocityStateExt msg, Receive::Body::ReceiveRec transportData);
 
+    /// Guard Methods
 
-	/// Guard Methods
+    VelocityStateSensor_ReceiveFSMContext* context;
 
-	
-	
-	VelocityStateSensor_ReceiveFSMContext *context;
-	
 protected:
+    /// References to parent FSMs
+    urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
+    urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
 
-	/// References to parent FSMs
-	urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM;
-	urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM;
+    std::shared_ptr<iop::Component> cmp;
+    rclcpp::Logger logger;
+    rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr p_odom_sub;
+    ReportVelocityState p_report_velocity_state;
 
-	std::shared_ptr<iop::Component> cmp;
-	rclcpp::Logger logger;
-	rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr p_odom_sub;
-	ReportVelocityState p_report_velocity_state;
-
-	void odomReceived(const nav_msgs::msg::Odometry::SharedPtr odom);
+    void odomReceived(const nav_msgs::msg::Odometry::SharedPtr odom);
 };
 
 }

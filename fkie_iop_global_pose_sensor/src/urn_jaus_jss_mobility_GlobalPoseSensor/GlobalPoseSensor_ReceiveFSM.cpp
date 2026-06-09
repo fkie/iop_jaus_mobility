@@ -85,6 +85,7 @@ void GlobalPoseSensor_ReceiveFSM::setupIopConfiguration()
 void GlobalPoseSensor_ReceiveFSM::sendReportGeomagneticPropertyAction(QueryGeomagneticProperty msg, Receive::Body::ReceiveRec transportData)
 {
     /// Insert User Code HERE
+    RCLCPP_WARN(logger, "sendReportGeomagneticPropertyAction not implemented");
 }
 
 void GlobalPoseSensor_ReceiveFSM::sendReportGlobalPoseAction(QueryGlobalPose msg, Receive::Body::ReceiveRec transportData)
@@ -104,16 +105,19 @@ void GlobalPoseSensor_ReceiveFSM::sendReportGlobalPoseExtAction(QueryGlobalPoseE
 void GlobalPoseSensor_ReceiveFSM::updateGeomagneticPropertyAction(SetGeomagneticProperty msg, Receive::Body::ReceiveRec transportData)
 {
     /// Insert User Code HERE
+    RCLCPP_WARN(logger, "updateGeomagneticPropertyAction not implemented");
 }
 
 void GlobalPoseSensor_ReceiveFSM::updateGlobalPoseAction(SetGlobalPose msg, Receive::Body::ReceiveRec transportData)
 {
     /// Insert User Code HERE
+    RCLCPP_WARN(logger, "updateGlobalPoseAction not implemented");
 }
 
 void GlobalPoseSensor_ReceiveFSM::updateGlobalPoseExtAction(SetGlobalPoseExt msg, Receive::Body::ReceiveRec transportData)
 {
     /// Insert User Code HERE
+    RCLCPP_WARN(logger, "updateGlobalPoseExtAction not implemented");
 }
 
 bool GlobalPoseSensor_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
@@ -144,9 +148,9 @@ void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::msg::NavSatFix:
         ts.setSeconds(stamp.seconds);
         ts.setMilliseconds(stamp.milliseconds);
         p_report_global_pose.getBody()->getGlobalPoseRec()->setTimeStamp(ts);
-		pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalPose::ID, &p_report_global_pose);
+        pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalPose::ID, &p_report_global_pose);
 
-		// create ext
+        // create ext
         p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setLatitude(fix->latitude);
         p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setLongitude(fix->longitude);
         p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setAltitudeMSL(fix->altitude);
@@ -157,10 +161,9 @@ void GlobalPoseSensor_ReceiveFSM::fixReceived(const sensor_msgs::msg::NavSatFix:
         }
         // set timestamp
         p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setTimeSeconds(fix->header.stamp.sec);
-		p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setTimeNanoSeconds(fix->header.stamp.nanosec);
+        p_report_global_pose_ext.getBody()->getReportGlobalPoseExtRec()->setTimeNanoSeconds(fix->header.stamp.nanosec);
         pEvents_ReceiveFSM->get_event_handler().set_report(QueryGlobalPoseExt::ID, &p_report_global_pose_ext);
-
-	}
+    }
 }
 
 void GlobalPoseSensor_ReceiveFSM::imuReceived(const sensor_msgs::msg::Imu::SharedPtr imu)

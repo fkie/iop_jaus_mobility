@@ -78,7 +78,7 @@ protected:
     rclcpp::Subscription<sensor_msgs::msg::NavSatFix>::SharedPtr p_navsatfix_sub;
     rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr p_imu_sub;
     ReportGlobalPose p_report_global_pose;
-	ReportGlobalPoseExt p_report_global_pose_ext;
+    ReportGlobalPoseExt p_report_global_pose_ext;
     double p_yaw, p_pitch, p_roll;
     bool p_is_ori_valid;
 

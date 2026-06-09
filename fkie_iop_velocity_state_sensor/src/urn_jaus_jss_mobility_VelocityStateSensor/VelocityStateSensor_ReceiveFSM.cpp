@@ -20,97 +20,84 @@ along with this program; or you can read the full license at
 
 /** \author Alexander Tiderko */
 
-
 #include "urn_jaus_jss_mobility_VelocityStateSensor/VelocityStateSensor_ReceiveFSM.h"
 #include <fkie_iop_component/iop_config.hpp>
 
-
-
 using namespace JTS;
 
-namespace urn_jaus_jss_mobility_VelocityStateSensor
-{
-
-
+namespace urn_jaus_jss_mobility_VelocityStateSensor {
 
 VelocityStateSensor_ReceiveFSM::VelocityStateSensor_ReceiveFSM(std::shared_ptr<iop::Component> cmp, urn_jaus_jss_core_Events::Events_ReceiveFSM* pEvents_ReceiveFSM, urn_jaus_jss_core_Transport::Transport_ReceiveFSM* pTransport_ReceiveFSM)
-: logger(cmp->get_logger().get_child("VelocityStateSensor"))
+    : logger(cmp->get_logger().get_child("VelocityStateSensor"))
 {
 
-	/*
-	 * If there are other variables, context must be constructed last so that all 
-	 * class variables are available if an EntryAction of the InitialState of the 
-	 * statemachine needs them. 
-	 */
-	context = new VelocityStateSensor_ReceiveFSMContext(*this);
+    /*
+     * If there are other variables, context must be constructed last so that all
+     * class variables are available if an EntryAction of the InitialState of the
+     * statemachine needs them.
+     */
+    context = new VelocityStateSensor_ReceiveFSMContext(*this);
 
-	this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
-	this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
-	this->cmp = cmp;
+    this->pEvents_ReceiveFSM = pEvents_ReceiveFSM;
+    this->pTransport_ReceiveFSM = pTransport_ReceiveFSM;
+    this->cmp = cmp;
 }
 
-
-
-VelocityStateSensor_ReceiveFSM::~VelocityStateSensor_ReceiveFSM() 
+VelocityStateSensor_ReceiveFSM::~VelocityStateSensor_ReceiveFSM()
 {
-	delete context;
+    delete context;
 }
 
 void VelocityStateSensor_ReceiveFSM::setupNotifications()
 {
-	pEvents_ReceiveFSM->registerNotification("Receiving_Ready", ieHandler, "InternalStateChange_To_VelocityStateSensor_ReceiveFSM_Receiving_Ready", "Events_ReceiveFSM");
-	pEvents_ReceiveFSM->registerNotification("Receiving", ieHandler, "InternalStateChange_To_VelocityStateSensor_ReceiveFSM_Receiving_Ready", "Events_ReceiveFSM");
-	registerNotification("Receiving_Ready", pEvents_ReceiveFSM->getHandler(), "InternalStateChange_To_Events_ReceiveFSM_Receiving_Ready", "VelocityStateSensor_ReceiveFSM");
-	registerNotification("Receiving", pEvents_ReceiveFSM->getHandler(), "InternalStateChange_To_Events_ReceiveFSM_Receiving", "VelocityStateSensor_ReceiveFSM");
-
+    pEvents_ReceiveFSM->registerNotification("Receiving_Ready", ieHandler, "InternalStateChange_To_VelocityStateSensor_ReceiveFSM_Receiving_Ready", "Events_ReceiveFSM");
+    pEvents_ReceiveFSM->registerNotification("Receiving", ieHandler, "InternalStateChange_To_VelocityStateSensor_ReceiveFSM_Receiving_Ready", "Events_ReceiveFSM");
+    registerNotification("Receiving_Ready", pEvents_ReceiveFSM->getHandler(), "InternalStateChange_To_Events_ReceiveFSM_Receiving_Ready", "VelocityStateSensor_ReceiveFSM");
+    registerNotification("Receiving", pEvents_ReceiveFSM->getHandler(), "InternalStateChange_To_Events_ReceiveFSM_Receiving", "VelocityStateSensor_ReceiveFSM");
 }
-
 
 void VelocityStateSensor_ReceiveFSM::setupIopConfiguration()
 {
-	iop::Config cfg(cmp, "VelocityStateSensor");
-	p_odom_sub = cfg.create_subscription<nav_msgs::msg::Odometry>("odom", 1, std::bind(&VelocityStateSensor_ReceiveFSM::odomReceived, this, std::placeholders::_1));
+    iop::Config cfg(cmp, "VelocityStateSensor");
+    p_odom_sub = cfg.create_subscription<nav_msgs::msg::Odometry>("odom", 1, std::bind(&VelocityStateSensor_ReceiveFSM::odomReceived, this, std::placeholders::_1));
 
-	pEvents_ReceiveFSM->get_event_handler().register_query(QueryVelocityState::ID);
+    pEvents_ReceiveFSM->get_event_handler().register_query(QueryVelocityState::ID);
 }
 
-void VelocityStateSensor_ReceiveFSM::SendAction(std::string arg0, Receive::Body::ReceiveRec transportData)
+void VelocityStateSensor_ReceiveFSM::sendReportVelocityStateAction(QueryVelocityState msg, Receive::Body::ReceiveRec transportData)
 {
-	/// Insert User Code HERE
-	RCLCPP_DEBUG(logger, "request from %d.%d.%d",
-			  transportData.getSrcSubsystemID(), transportData.getSrcNodeID(), transportData.getSrcComponentID());
-	JausAddress sender = JausAddress(transportData.getSrcSubsystemID(),
-									 transportData.getSrcNodeID(),
-									 transportData.getSrcComponentID());
+    JausAddress sender = transportData.getAddress();
+    RCLCPP_DEBUG(logger, "sendReportVelocityStateAction to %s", sender.str().c_str());
 
-	if (strcmp(arg0.c_str(), "ReportVelocityState") == 0) {
-		this->sendJausMessage(p_report_velocity_state, sender);
-	}
+    this->sendJausMessage(p_report_velocity_state, sender);
+}
+
+void VelocityStateSensor_ReceiveFSM::sendReportVelocityStateExtAction(QueryVelocityStateExt msg, Receive::Body::ReceiveRec transportData)
+{
+    /// Insert User Code HERE
+    RCLCPP_WARN(logger, "sendReportVelocityStateExtAction not implemented yet");
 }
 
 void VelocityStateSensor_ReceiveFSM::odomReceived(const nav_msgs::msg::Odometry::SharedPtr odom)
 {
-	p_report_velocity_state.getBody()->getReportVelocityStateRec()->setVelocity_X(odom->twist.twist.linear.x);
-	p_report_velocity_state.getBody()->getReportVelocityStateRec()->setVelocity_Y(odom->twist.twist.linear.y);
-	p_report_velocity_state.getBody()->getReportVelocityStateRec()->setVelocity_Z(odom->twist.twist.linear.z);
-	p_report_velocity_state.getBody()->getReportVelocityStateRec()->setRollRate(odom->twist.twist.angular.x);
-	p_report_velocity_state.getBody()->getReportVelocityStateRec()->setPitchRate(odom->twist.twist.angular.y);
-	p_report_velocity_state.getBody()->getReportVelocityStateRec()->setYawRate(odom->twist.twist.angular.z);
-		
-	// set timestamp
-	ReportVelocityState::Body::ReportVelocityStateRec::TimeStamp ts;
-	// current date/time based on current system
-	iop::Timestamp stamp = cmp->from_ros(odom->header.stamp);
-	ts.setDay(stamp.days);
-	ts.setHour(stamp.hours);
-	ts.setMinutes(stamp.minutes);
-	ts.setSeconds(stamp.seconds);
-	ts.setMilliseconds(stamp.milliseconds);
-	p_report_velocity_state.getBody()->getReportVelocityStateRec()->setTimeStamp(ts);
-	pEvents_ReceiveFSM->get_event_handler().set_report(QueryVelocityState::ID, &p_report_velocity_state);
+    p_report_velocity_state.getBody()->getReportVelocityStateRec()->setVelocity_X(odom->twist.twist.linear.x);
+    p_report_velocity_state.getBody()->getReportVelocityStateRec()->setVelocity_Y(odom->twist.twist.linear.y);
+    p_report_velocity_state.getBody()->getReportVelocityStateRec()->setVelocity_Z(odom->twist.twist.linear.z);
+    p_report_velocity_state.getBody()->getReportVelocityStateRec()->setRollRate(odom->twist.twist.angular.x);
+    p_report_velocity_state.getBody()->getReportVelocityStateRec()->setPitchRate(odom->twist.twist.angular.y);
+    p_report_velocity_state.getBody()->getReportVelocityStateRec()->setYawRate(odom->twist.twist.angular.z);
+
+    // set timestamp
+    ReportVelocityState::Body::ReportVelocityStateRec::TimeStamp ts;
+    // current date/time based on current system
+    iop::Timestamp stamp = cmp->from_ros(odom->header.stamp);
+    ts.setDay(stamp.days);
+    ts.setHour(stamp.hours);
+    ts.setMinutes(stamp.minutes);
+    ts.setSeconds(stamp.seconds);
+    ts.setMilliseconds(stamp.milliseconds);
+    p_report_velocity_state.getBody()->getReportVelocityStateRec()->setTimeStamp(ts);
+    pEvents_ReceiveFSM->get_event_handler().set_report(QueryVelocityState::ID, &p_report_velocity_state);
 }
-
-
-
 
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="3">
   <name>fkie_iop_global_waypoint_list_driver</name>
-  <version>1.0.0</version>
+  <version>2.2.0</version>
   <description>Service to move the platform to specified list of waypoint.</description>
 
   <author>Alexander Tiderko</author>
