@@ -100,36 +100,30 @@ void PrimitiveDriver_ReceiveFSM::setupNotifications()
 void PrimitiveDriver_ReceiveFSM::setupIopConfiguration()
 {
     iop::Config cfg(cmp, "PrimitiveDriver");
-    cfg.declare_param<double>("max_linear_x", max_linear_x, true,
+    cfg.param<double>("max_linear_x", max_linear_x, max_linear_x, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum forward velocity allowed in meters/sec. Negative value inverts the direction.",
-        "Default: 3.5 m/sec");
-    cfg.declare_param<double>("max_linear_y", max_linear_y, true,
+        "Default: 3.5 m/sec", "m/s");
+    cfg.param<double>("max_linear_y", max_linear_y, max_linear_y, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum y velocity allowed in meters/sec. Negative value inverts the direction.",
-        "Default: 0 m/sec");
-    cfg.declare_param<double>("max_linear_z", max_linear_z, true,
+        "Default: 0 m/sec", "m/s");
+    cfg.param<double>("max_linear_z", max_linear_z, max_linear_z, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum z velocity allowed in meters/sec. Negative value inverts the direction.",
-        "Default: 0 m/sec");
-    cfg.declare_param<double>("max_angular_x", max_angular_x, true,
+        "Default: 0 m/sec", "m/s");
+    cfg.param<double>("max_angular_x", max_angular_x, max_angular_x, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum roll rotation velocity allowed in radians/sec. Negative value inverts the direction.",
-        "Default: 0 radians/sec");
-    cfg.declare_param<double>("max_angular_y", max_angular_y, true,
+        "Default: 0 radians/sec", "rad");
+    cfg.param<double>("max_angular_y", max_angular_y, max_angular_y, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum pitch rotation velocity allowed in radians/sec. Negative value inverts the direction.",
-        "Default: 0 radians/sec");
-    cfg.declare_param<double>("max_angular_z", max_angular_z, true,
+        "Default: 0 radians/sec", "rad");
+    cfg.param<double>("max_angular_z", max_angular_z, max_angular_z, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum yaw rotation velocity allowed in radians/sec. Negative value inverts the direction.",
-        "Default: 1.5 radians/sec");
-    cfg.param("max_linear_x", max_linear_x, max_linear_x, true, "m/s");
-    cfg.param("max_linear_y", max_linear_y, max_linear_y, true, "m/s");
-    cfg.param("max_linear_z", max_linear_z, max_linear_z, true, "m/s");
-    cfg.param("max_angular_x", max_angular_x, max_angular_x, true, "rad");
-    cfg.param("max_angular_y", max_angular_y, max_angular_y, true, "rad");
-    cfg.param("max_angular_z", max_angular_z, max_angular_z, true, "rad");
+        "Default: 1.5 radians/sec", "rad");
     //        odom_sub_ = p_nh.create_subscription<nav_msgs::Odometry>("odom", 1, &PrimitiveDriver_ReceiveFSM::odomReceived, this);
     // create ROS subscriber
     cmd_stamped_pub_ = cfg.create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel_stamped", 5);
@@ -213,6 +207,7 @@ void PrimitiveDriver_ReceiveFSM::setWrenchEffortAction(SetWrenchEffort msg)
         cmd_vel.angular.z = 0;
         new_wrench_effort.setPropulsiveRotationalEffortZ(0);
     }
+    std::cout << "WRENCH " << cmd_vel.linear.x << std::endl;
     current_wrench_effort_ = new_wrench_effort;
     cmd_pub_->publish(cmd_vel);
     // since the jaus message does not have time stamp, we use current time
@@ -221,7 +216,6 @@ void PrimitiveDriver_ReceiveFSM::setWrenchEffortAction(SetWrenchEffort msg)
     cmd_vel_stamped.twist = cmd_vel;
     cmd_stamped_pub_->publish(cmd_vel_stamped);
 }
-
 
 bool PrimitiveDriver_ReceiveFSM::isControllingClient(Receive::Body::ReceiveRec transportData)
 {

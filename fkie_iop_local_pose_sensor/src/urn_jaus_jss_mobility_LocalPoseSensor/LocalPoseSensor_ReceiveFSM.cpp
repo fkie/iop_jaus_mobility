@@ -75,23 +75,14 @@ void LocalPoseSensor_ReceiveFSM::setupIopConfiguration()
 {
     iop::Config cfg(cmp, "LocalPoseSensor");
     int source = 0;
-    cfg.declare_param<uint8_t>("source_type", source, true,
-        rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER,
-        "Defines the source of local position. 0: tf, 1: geometry_msgs::PoseStamped, 2: nav_msgs::Odometry",
-        "Default: 0");
-    cfg.declare_param<std::string>("tf_frame_odom", p_tf_frame_odom, true,
-        rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
-        "Defines the odometry frame id. This parameter is only regarded if _source_type_ is *0* (tf).",
-        "Default: 'odom'");
-    cfg.declare_param<std::string>("p_tf_frame_robot", p_tf_frame_robot, true,
-        rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
-        "Defines the robot frame id. This parameter is only regarded if _source_type_ is *0* (tf).",
-        "Default: 'base_link'");
     std::map<int, std::string> source_map;
     source_map[0] = "tf";
     source_map[1] = "PoseStamped";
     source_map[2] = "Odometry";
-    cfg.param_named("source_type", source, source, source_map, true, "");
+    cfg.param_named<int>("source_type", source, source, source_map, true,
+        rcl_interfaces::msg::ParameterType::PARAMETER_INTEGER,
+        "Defines the source of local position. 0: tf, 1: geometry_msgs::PoseStamped, 2: nav_msgs::Odometry",
+        "Default: 0");
     switch (source) {
     case 1:
         p_pose_sub = cfg.create_subscription<geometry_msgs::msg::PoseStamped>("pose", 1, std::bind(&LocalPoseSensor_ReceiveFSM::poseReceived, this, std::placeholders::_1));
@@ -100,8 +91,14 @@ void LocalPoseSensor_ReceiveFSM::setupIopConfiguration()
         p_odom_sub = cfg.create_subscription<nav_msgs::msg::Odometry>("odom", 1, std::bind(&LocalPoseSensor_ReceiveFSM::odomReceived, this, std::placeholders::_1));
         break;
     default:
-        cfg.param("tf_frame_odom", p_tf_frame_odom, p_tf_frame_odom);
-        cfg.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
+        cfg.param<std::string>("tf_frame_odom", p_tf_frame_odom, p_tf_frame_odom, true,
+            rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
+            "Defines the odometry frame id. This parameter is only regarded if _source_type_ is *0* (tf).",
+            "Default: 'odom'");
+        cfg.param<std::string>("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot, true,
+            rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
+            "Defines the robot frame id. This parameter is only regarded if _source_type_ is *0* (tf).",
+            "Default: 'base_link'");
         p_tf_buffer = std::make_unique<tf2_ros::Buffer>(cmp->get_clock());
         p_tf_listener = std::make_shared<tf2_ros::TransformListener>(*p_tf_buffer);
         double tf_hz = 10.0;

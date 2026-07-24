@@ -85,16 +85,14 @@ void GlobalWaypointListDriver_ReceiveFSM::setupNotifications()
 void GlobalWaypointListDriver_ReceiveFSM::setupIopConfiguration()
 {
     iop::Config cfg(cmp, "GlobalWaypointListDriver");
-    cfg.declare_param<std::string>("tf_frame_world", p_tf_frame_world, true,
+    cfg.param<std::string>("tf_frame_world", p_tf_frame_world, p_tf_frame_world, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
         "TF frame used in ROS for global coordinates. This value is set in each command message.",
         "Default: 'world'");
-    cfg.declare_param<double>("tv_max", p_tv_max, true,
+    cfg.param<double>("tv_max", p_tv_max, p_tv_max, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum allowed speed.",
         "Default: 1.0");
-    cfg.param("tf_frame_world", p_tf_frame_world, p_tf_frame_world);
-    cfg.param("tv_max", p_tv_max, p_tv_max);
 
     pEvents_ReceiveFSM->get_event_handler().register_query(QueryActiveElement::ID);
     pEvents_ReceiveFSM->get_event_handler().register_query(QueryGlobalWaypoint::ID);

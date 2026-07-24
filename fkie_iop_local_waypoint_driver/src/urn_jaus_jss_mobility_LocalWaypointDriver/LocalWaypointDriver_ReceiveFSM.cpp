@@ -83,21 +83,18 @@ void LocalWaypointDriver_ReceiveFSM::setupNotifications()
 void LocalWaypointDriver_ReceiveFSM::setupIopConfiguration()
 {
     iop::Config cfg(cmp, "LocalWaypointDriver");
-    cfg.declare_param<std::string>("tf_frame_robot", p_tf_frame_robot, true,
+    cfg.param<std::string>("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
         "TF frame used in ROS for local coordinates. This value is set in each command message.",
         "Default: 'base_link'");
-    cfg.declare_param<std::string>("tf_frame_target", p_tf_frame_target, true,
+    cfg.param<std::string>("tf_frame_target", p_tf_frame_target, p_tf_frame_target, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_STRING,
         "TF frame used in ROS for local coordinates. Change it if the command should be transformed to a new frame id.",
         "Default: 'base_link'");
-    cfg.declare_param<double>("tv_max", p_tv_max, true,
+    cfg.param<float>("tv_max", p_tv_max, p_tv_max, true,
         rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE,
         "The maximum allowed speed.",
         "Default: 1.0");
-    cfg.param("tf_frame_robot", p_tf_frame_robot, p_tf_frame_robot);
-    cfg.param("tf_frame_target", p_tf_frame_target, p_tf_frame_target);
-    cfg.param("tv_max", p_tv_max, p_tv_max);
 
     pEvents_ReceiveFSM->get_event_handler().register_query(QueryLocalWaypoint::ID);
     // create ROS subscriber
